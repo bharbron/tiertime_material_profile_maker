@@ -13,15 +13,17 @@ usage: tiertime_material_profile_maker.py [-h] [--template-file TEMPLATE_FILE]
                                           [--diameter DIAMETER]
                                           [--density DENSITY]
                                           [--shrinkage SHRINKAGE SHRINKAGE SHRINKAGE]
+                                          [--printer {default,up_mini_2}]
                                           [--nozzle-diameter {0.2,0.4,0.6}]
                                           [--layer-height LAYER_HEIGHT]
-                                          [--speed {0,1,2}]
+                                          [--speed {fine,superfast,fast,normal}]
                                           [--withdraw WITHDRAW]
                                           [--peel-ratio PEEL_RATIO]
                                           [--line-width LINE_WIDTH LINE_WIDTH LINE_WIDTH]
                                           [--scan-speed SCAN_SPEED SCAN_SPEED SCAN_SPEED]
                                           [--send-ratio SEND_RATIO SEND_RATIO SEND_RATIO]
                                           [--temp-bias TEMP_BIAS TEMP_BIAS TEMP_BIAS]
+                                          [--retraction-speed RESTRACTION_SPEED]
                                           output
 
 positional arguments:
@@ -45,15 +47,19 @@ optional arguments:
   --density DENSITY     Material density
   --shrinkage SHRINKAGE SHRINKAGE SHRINKAGE
                         Material shrinkage percentage
+  --printer {default,up_mini_2}
+                        Single printer that these customizations will be
+                        applied to
   --nozzle-diameter {0.2,0.4,0.6}
                         Single nozzle diameter that these customizations will
                         be applied to
   --layer-height LAYER_HEIGHT
                         Single layer height that these customizations will be
                         applied to
-  --speed {0,1,2}       Single print speed these customizations will be
-                        applied to: 0=Normal, 1=Fine, 2=Fast
-  --withdraw WITHDRAW   Extrusion withdraw in mm/s
+  --speed {fine,superfast,fast,normal}
+                        Single print speed these customizations will be
+                        applied to
+  --withdraw WITHDRAW   Extrusion withdraw/retraction distance in mm
   --peel-ratio PEEL_RATIO
                         Peel ratio for raft and supports, from 0 to 100
   --line-width LINE_WIDTH LINE_WIDTH LINE_WIDTH
@@ -64,4 +70,6 @@ optional arguments:
                         Send ratio in float [outline, infill, support]
   --temp-bias TEMP_BIAS TEMP_BIAS TEMP_BIAS
                         Temperature bias in int [outline, infill, support]
+  --retraction-speed RESTRACTION_SPEED
+                        Speed of withdraw/retraction in mm/s
 ```
