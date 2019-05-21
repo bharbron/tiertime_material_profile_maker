@@ -1,6 +1,9 @@
 # tiertime_material_profile_maker
-Python script for generating a custom material profile .FMD file for TierTime 3d Printers
+Python script for generating a custom material profile .FMD file for TierTime 3d Printers.
 
+The current Mac OS X version of UP Studio allows you to _import_ new material profiles, but it does not allow you to _create_ new profiles. This script is an attempt at a workaround for that.
+
+```
 usage: tiertime_material_profile_maker.py [-h] [--template-file TEMPLATE_FILE]
                                           --template {ABS,ABS+,PLA,TPU,CUSTOM}
                                           --name NAME --manufacturer
@@ -61,3 +64,4 @@ optional arguments:
                         Send ratio in float [outline, infill, support]
   --temp-bias TEMP_BIAS TEMP_BIAS TEMP_BIAS
                         Temperature bias in int [outline, infill, support]
+```
