@@ -17,13 +17,13 @@ MAT_DIAMETER = "b7"
 MAT_DENSITY = "b8"
 SHRINKAGE = "b9"
 PRINTER = "p1"
-PRINTER_DEFAULT = -1
+ID_TO_PRINTER = {-1: "default", 10104: "up_mini_2"}
+PRINTER_TO_ID = {"default": -1, "up_mini_2": 10104}
 NOZZLE_DIAMETER = "p2"
 LAYER_HEIGHT = "p3"
 SPEED = "p4"
-SPEED_NORMAL = 0
-SPEED_FINE = 1
-SPEED_FAST = 2
+ID_TO_SPEED = {0: "normal", 1: "fine", 2: "fast", 3: "superfast"}
+SPEED_TO_ID = {"normal": 0, "fine": 1, "fast": 2, "superfast": 3}
 PRINT_TEMP_LOW = "p6"
 PRINT_TEMP_HIGH = "p7"
 BED_TEMP_3 = "p8"
@@ -33,16 +33,17 @@ LINE_WIDTH = "p11"
 SCAN_SPEED = "p12"
 SEND_RATIO = "p13"
 TEMP_BIAS = "p14"
+RETRACTION_SPEED = "p19"
 
 # Where the FMD file that ships with UP Studio should be
 VENDOR_PATH = '/Applications/UP Studio.app/Contents/Resources/DB/vendor.fmd'
 
 
 def validate_args(args):
-    if ((args.nozzle_diameter is not None or args.layer_height is not None or args.speed is not None) and not
-            (args.nozzle_diameter is not None and args.layer_height is not None and args.speed is not None)):
+    if ((args.printer is not None or args.nozzle_diameter is not None or args.layer_height is not None or args.speed is not None) and not
+            (args.printer is not None and args.nozzle_diameter is not None and args.layer_height is not None and args.speed is not None)):
         print
-        print "Must provide either all or none for --nozzle-diameter, --layer-height, and --speed"
+        print "Must provide either all or none for --printer, --nozzle-diameter, --layer-height, and --speed"
         sys.exit(2)
 
 
@@ -76,18 +77,20 @@ def main():
     parser.add_argument("--shrinkage", action="store", dest="shrinkage", type=float, nargs=3,
                         help="Material shrinkage percentage")
 
+    parser.add_argument("--printer", action="store", dest="printer", type=str, choices=PRINTER_TO_ID.keys(),
+                        help="Single printer that these customizations will be applied to")
+
     parser.add_argument("--nozzle-diameter", action="store", dest="nozzle_diameter", type=float, choices=[0.2, 0.4, 0.6],
                         help="Single nozzle diameter that these customizations will be applied to")
 
     parser.add_argument("--layer-height", action="store", dest="layer_height", type=float,
                         help="Single layer height that these customizations will be applied to")
 
-    parser.add_argument("--speed", action="store", dest="speed", type=int, choices=[SPEED_NORMAL, SPEED_FINE, SPEED_FAST],
-                        help="Single print speed these customizations will be applied to: {0}=Normal, {1}=Fine, {2}=Fast".format(
-                            SPEED_NORMAL, SPEED_FINE, SPEED_FAST))
+    parser.add_argument("--speed", action="store", dest="speed", type=str, choices=SPEED_TO_ID.keys(),
+                        help="Single print speed these customizations will be applied to")
 
     parser.add_argument("--withdraw", action="store", dest="withdraw", type=int,
-                        help="Extrusion withdraw in mm/s")
+                        help="Extrusion withdraw/retraction distance in mm")
 
     parser.add_argument("--peel-ratio", action="store", dest="peel_ratio", type=int,
                         help="Peel ratio for raft and supports, from 0 to 100")
@@ -103,6 +106,9 @@ def main():
 
     parser.add_argument("--temp-bias", action="store", dest="temp_bias", type=int, nargs=3,
                         help="Temperature bias in int [outline, infill, support]")
+
+    parser.add_argument("--retraction-speed", action="store", dest="restraction_speed", type=int,
+                        help="Speed of withdraw/retraction in mm/s")
 
     parser.add_argument("output", action="store", type=str,
                         help="The filename for the new custom material .fmd file")
@@ -140,12 +146,12 @@ def main():
                 for group in data["group"]:
 
                     # Update either all layer-height/speed combinations (no args given) or only the specific layer-height/speed combination (both args given)
-                    if (args.nozzle_diameter is None and args.layer_height is None and args.speed is None or
-                            group[NOZZLE_DIAMETER] == args.nozzle_diameter and group[LAYER_HEIGHT] == args.layer_height and group[SPEED] == args.speed):
-                        print "Updating printer {0}, nozzle {1}, layer_height {2}, speed {3}".format(
-                            group[PRINTER], group[NOZZLE_DIAMETER], group[LAYER_HEIGHT], group[SPEED])
-                        group[LAYER_HEIGHT] = args.layer_height if args.layer_height is not None else group[LAYER_HEIGHT]
-                        group[SPEED] = args.speed if args.speed is not None else group[SPEED]
+                    if (args.printer is None and args.nozzle_diameter is None and args.layer_height is None and args.speed is None or
+                            ID_TO_PRINTER.get(group[PRINTER], group[PRINTER]) == args.printer and group[NOZZLE_DIAMETER] == args.nozzle_diameter and
+                            group[LAYER_HEIGHT] == args.layer_height and ID_TO_SPEED.get(group[SPEED], group[SPEED]) == args.speed):
+                        print "Updating printer {0}, nozzle {1}, layer {2}, speed {3}".format(
+                            ID_TO_PRINTER.get(group[PRINTER], group[PRINTER]
+                                              ), group[NOZZLE_DIAMETER], group[LAYER_HEIGHT], ID_TO_SPEED.get(group[SPEED], group[SPEED]))
                         group[PRINT_TEMP_LOW] = args.temperature if args.temperature is not None else group[PRINT_TEMP_LOW]
                         group[PRINT_TEMP_HIGH] = args.temperature + 10 if args.temperature is not None else group[PRINT_TEMP_HIGH]
                         group[BED_TEMP_3] = args.bed_temp if args.bed_temp is not None else group[BED_TEMP_3]
@@ -155,6 +161,7 @@ def main():
                         group[SCAN_SPEED] = [args.scan_speed[0], args.scan_speed[1], args.scan_speed[2]] if args.scan_speed is not None else group[SCAN_SPEED]
                         group[SEND_RATIO] = [args.send_ratio[0], args.send_ratio[1], args.send_ratio[2]] if args.send_ratio is not None else group[SEND_RATIO]
                         group[TEMP_BIAS] = [args.temp_bias[0], args.temp_bias[1], args.temp_bias[2]] if args.temp_bias is not None else group[TEMP_BIAS]
+                        group[RETRACTION_SPEED] = args.restraction_speed if args.restraction_speed is not None else group[RETRACTION_SPEED]
 
                     groups.append(group)
 
@@ -170,14 +177,17 @@ def main():
                 print "SHRINKAGE %:", data[SHRINKAGE]
                 print
                 for group in data["group"]:
-                    if (args.nozzle_diameter is None and args.layer_height is None and args.speed is None or
-                            group[NOZZLE_DIAMETER] == args.nozzle_diameter and group[LAYER_HEIGHT] == args.layer_height and group[SPEED] == args.speed):
+                    if (args.printer is None and args.nozzle_diameter is None and args.layer_height is None and args.speed is None or
+                            ID_TO_PRINTER.get(group[PRINTER], group[PRINTER]) == args.printer and group[NOZZLE_DIAMETER] == args.nozzle_diameter and
+                            group[LAYER_HEIGHT] == args.layer_height and ID_TO_SPEED.get(group[SPEED], group[SPEED]) == args.speed):
+                        if args.printer is not None:
+                            print "PRINTER:", ID_TO_PRINTER[group[PRINTER]]
                         if args.nozzle_diameter is not None:
                             print "NOZZLE DIAMETER:", group[NOZZLE_DIAMETER]
                         if args.layer_height is not None:
                             print "LAYER HEIGHT:", group[LAYER_HEIGHT]
                         if args.speed is not None:
-                            print "SPEED:", group[SPEED]
+                            print "SPEED:", ID_TO_SPEED[group[SPEED]]
                         print "PRINT TEMP LOW:", group[PRINT_TEMP_LOW]
                         print "PRINT TEMP HIGH:", group[PRINT_TEMP_HIGH]
                         print "BED TEMPERATURE:", group[BED_TEMP_3]
@@ -189,6 +199,7 @@ def main():
                         print "SCAN SPEED:", group[SCAN_SPEED]
                         print "SEND RATIO:", group[SEND_RATIO]
                         print "TEMP BIAS:", group[TEMP_BIAS]
+                        print "RETRACTION SPEED:", group[RETRACTION_SPEED]
                         break
 
                 output = json.dumps(data)
