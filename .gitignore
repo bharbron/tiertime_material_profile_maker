@@ -102,3 +102,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Ignore any FMD files that the script generates
+*.fmd
