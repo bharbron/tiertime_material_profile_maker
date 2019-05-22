@@ -20,31 +20,37 @@ PRINTER = "p1"
 ID_TO_PRINTER = {-1: "default", 10112: "up_mini_2"}
 PRINTER_TO_ID = {"default": -1, "up_mini_2": 10112}
 NOZZLE_DIAMETER = "p2"
-LAYER_HEIGHT = "p3"
+LAYER_THICK = "p3"
 SPEED = "p4"
 ID_TO_SPEED = {0: "normal", 1: "fine", 2: "fast", 3: "superfast"}
 SPEED_TO_ID = {"normal": 0, "fine": 1, "fast": 2, "superfast": 3}
+BASIC_SEND_RATE = "p5"
 PRINT_TEMP_LOW = "p6"
 PRINT_TEMP_HIGH = "p7"
 BED_TEMP_3 = "p8"
-WITHDRAW = "p9"
-PEEL_RATIO = "p10"
+MAT_WITHDRAW_LENGTH = "p9"
+P10 = "p10"
 LINE_WIDTH = "p11"
 SCAN_SPEED = "p12"
 SEND_RATIO = "p13"
 TEMP_BIAS = "p14"
-RETRACTION_SPEED = "p19"
+ASPEED = "p15"
+P16 = "p16"
+JOGGLE_SPEED = "p17"
+P18 = "p18"
+P19 = "p19"
+PART_SUPPORT_HATCH_SCALE = "p20"
+P21 = "p21"
+P22 = "p22"
+RAFT_LAYER_THICK = "p23"
+RAFT_PATH_WIDTH = "p24"
+P25 = "p25"
+P26 = "p26"
+P27 = "p27"
+P28 = "p28"
 
 # Where the FMD file that ships with UP Studio should be
 VENDOR_PATH = '/Applications/UP Studio.app/Contents/Resources/DB/vendor.fmd'
-
-
-def validate_args(args):
-    if ((args.printer is not None or args.nozzle_diameter is not None or args.layer_height is not None or args.speed is not None) and not
-            (args.printer is not None and args.nozzle_diameter is not None and args.layer_height is not None and args.speed is not None)):
-        print
-        print "Must provide either all or none for --printer, --nozzle-diameter, --layer-height, and --speed"
-        sys.exit(2)
 
 
 def main():
@@ -83,17 +89,17 @@ def main():
     parser.add_argument("--nozzle-diameter", action="store", dest="nozzle_diameter", type=float, choices=[0.2, 0.4, 0.6],
                         help="Single nozzle diameter that these customizations will be applied to")
 
-    parser.add_argument("--layer-height", action="store", dest="layer_height", type=float,
+    parser.add_argument("--layer-thickness", action="store", dest="layer_thick", type=float,
                         help="Single layer height that these customizations will be applied to")
 
     parser.add_argument("--speed", action="store", dest="speed", type=str, choices=SPEED_TO_ID.keys(),
                         help="Single print speed these customizations will be applied to")
 
-    parser.add_argument("--withdraw", action="store", dest="withdraw", type=int,
+    parser.add_argument("--withdraw-length", action="store", dest="withdraw_length", type=int,
                         help="Extrusion withdraw/retraction distance in mm")
 
-    parser.add_argument("--peel-ratio", action="store", dest="peel_ratio", type=int,
-                        help="Peel ratio for raft and supports, from 0 to 100")
+    parser.add_argument("--p10", action="store", dest="p10", type=int,
+                        help="Parameter p10")
 
     parser.add_argument("--line-width", action="store", dest="line_width", type=float, nargs=3,
                         help="Line width in float [outline, infill, support]")
@@ -107,14 +113,52 @@ def main():
     parser.add_argument("--temp-bias", action="store", dest="temp_bias", type=int, nargs=3,
                         help="Temperature bias in int [outline, infill, support]")
 
-    parser.add_argument("--retraction-speed", action="store", dest="restraction_speed", type=int,
-                        help="Speed of withdraw/retraction in mm/s")
+    parser.add_argument("--aspeed", action="store", dest="aspeed", type=int, nargs=3,
+                        help="Acceleration in int [outlint, infill, support]")
+
+    parser.add_argument("--p16", action="store", dest="p16", type=float,
+                        help="Parameter p16")
+
+    parser.add_argument("--joggle-speed", action="store", dest="joggle_speed", type=int,
+                        help="Joggle speed (travel speed???)")
+
+    parser.add_argument("--p18", action="store", dest="p18", type=float,
+                        help="Parameter p18")
+
+    parser.add_argument("--p19", action="store", dest="p19", type=int,
+                        help="Parameter p19")
+
+    parser.add_argument("--part-support-hatch-scale", action="store", dest="part_support_hatch_scale", type=float,
+                        help="Part support hatch scale (?)")
+
+    parser.add_argument("--p21", action="store", dest="p21", type=float,
+                        help="Parameter p21")
+
+    parser.add_argument("--p22", action="store", dest="p22", type=float,
+                        help="Parameter p22")
+
+    parser.add_argument("--raft-layer-thickness", action="store", dest="raft_layer_thickness", type=float,
+                        help="Raft layer thickness")
+
+    parser.add_argument("--raft-path-width", action="store", dest="raft_path_width", type=float,
+                        help="Raft path width")
+
+    parser.add_argument("--p25", action="store", dest="p25", type=float,
+                        help="Parameter p25")
+
+    parser.add_argument("--p26", action="store", dest="p26", type=int,
+                        help="Parameter p26")
+
+    parser.add_argument("--p27", action="store", dest="p27", type=int,
+                        help="Parameter p27")
+
+    parser.add_argument("--p28", action="store", dest="p28", type=int,
+                        help="Parameter p28")
 
     parser.add_argument("output", action="store", type=str,
                         help="The filename for the new custom material .fmd file")
 
     args = parser.parse_args()
-    validate_args(args)
 
     template_path = args.template_file if args.template_file is not None else VENDOR_PATH
 
@@ -144,24 +188,39 @@ def main():
                 groups = []
                 print
                 for group in data["group"]:
-
-                    # Update either all layer-height/speed combinations (no args given) or only the specific layer-height/speed combination (both args given)
-                    if (args.printer is None and args.nozzle_diameter is None and args.layer_height is None and args.speed is None or
-                            ID_TO_PRINTER.get(group[PRINTER], group[PRINTER]) == args.printer and group[NOZZLE_DIAMETER] == args.nozzle_diameter and
-                            group[LAYER_HEIGHT] == args.layer_height and ID_TO_SPEED.get(group[SPEED], group[SPEED]) == args.speed):
+                    if ((args.printer is None or args.printer == ID_TO_PRINTER.get(group[PRINTER], group[PRINTER])) and
+                        (args.nozzle_diameter is None or args.nozzle_diameter == group[NOZZLE_DIAMETER]) and
+                        (args.layer_thick is None or args.layer_thick == group[LAYER_THICK]) and
+                            (args.speed is None or args.speed == ID_TO_SPEED.get(group[SPEED], group[SPEED]))):
                         print "Updating printer {0}, nozzle {1}, layer {2}, speed {3}".format(
                             ID_TO_PRINTER.get(group[PRINTER], group[PRINTER]
-                                              ), group[NOZZLE_DIAMETER], group[LAYER_HEIGHT], ID_TO_SPEED.get(group[SPEED], group[SPEED]))
+                                              ), group[NOZZLE_DIAMETER], group[LAYER_THICK], ID_TO_SPEED.get(group[SPEED], group[SPEED]))
                         group[PRINT_TEMP_LOW] = args.temperature if args.temperature is not None else group[PRINT_TEMP_LOW]
                         group[PRINT_TEMP_HIGH] = args.temperature + 10 if args.temperature is not None else group[PRINT_TEMP_HIGH]
                         group[BED_TEMP_3] = args.bed_temp if args.bed_temp is not None else group[BED_TEMP_3]
-                        group[WITHDRAW] = args.withdraw if args.withdraw is not None else group[WITHDRAW]
-                        group[PEEL_RATIO] = args.peel_ratio if args.peel_ratio is not None else group[PEEL_RATIO]
+                        group[MAT_WITHDRAW_LENGTH] = args.withdraw_length if args.withdraw_length is not None else group[MAT_WITHDRAW_LENGTH]
+                        group[P10] = args.p10 if args.p10 is not None else group[P10]
                         group[LINE_WIDTH] = [args.line_width[0], args.line_width[1], args.line_width[2]] if args.line_width is not None else group[LINE_WIDTH]
                         group[SCAN_SPEED] = [args.scan_speed[0], args.scan_speed[1], args.scan_speed[2]] if args.scan_speed is not None else group[SCAN_SPEED]
                         group[SEND_RATIO] = [args.send_ratio[0], args.send_ratio[1], args.send_ratio[2]] if args.send_ratio is not None else group[SEND_RATIO]
                         group[TEMP_BIAS] = [args.temp_bias[0], args.temp_bias[1], args.temp_bias[2]] if args.temp_bias is not None else group[TEMP_BIAS]
-                        group[RETRACTION_SPEED] = args.restraction_speed if args.restraction_speed is not None else group[RETRACTION_SPEED]
+                        group[ASPEED] = [args.aspeed[0], args.aspeed[1], args.aspeed[2]] if args.aspeed is not None else group[ASPEED]
+                        group[P16] = args.p16 if args.p16 is not None else group[P16]
+                        group[JOGGLE_SPEED] = args.joggle_speed if args.joggle_speed is not None else group[JOGGLE_SPEED]
+                        group[P18] = args.p18 if args.p18 is not None else group[P18]
+                        group[P19] = args.p19 if args.p19 is not None else group[P19]
+                        if args.part_support_hatch_scale is not None:
+                            group[PART_SUPPORT_HATCH_SCALE] = args.part_support_hatch_scale
+                        else:
+                            group[PART_SUPPORT_HATCH_SCALE]
+                        group[P21] = args.p21 if args.p21 is not None else group[P21]
+                        group[P22] = args.p22 if args.p22 is not None else group[P22]
+                        group[RAFT_LAYER_THICK] = args.raft_layer_thickness if args.raft_layer_thickness is not None else group[RAFT_LAYER_THICK]
+                        group[RAFT_PATH_WIDTH] = args.raft_path_width if args.raft_path_width is not None else group[RAFT_PATH_WIDTH]
+                        group[P25] = args.p25 if args.p25 is not None else group[P25]
+                        group[P26] = args.p26 if args.p26 is not None else group[P26]
+                        group[P27] = args.p27 if args.p27 is not None else group[P27]
+                        group[P28] = args.p28 if args.p28 is not None else group[P28]
 
                     groups.append(group)
 
@@ -177,29 +236,44 @@ def main():
                 print "SHRINKAGE %:", data[SHRINKAGE]
                 print
                 for group in data["group"]:
-                    if (args.printer is None and args.nozzle_diameter is None and args.layer_height is None and args.speed is None or
-                            ID_TO_PRINTER.get(group[PRINTER], group[PRINTER]) == args.printer and group[NOZZLE_DIAMETER] == args.nozzle_diameter and
-                            group[LAYER_HEIGHT] == args.layer_height and ID_TO_SPEED.get(group[SPEED], group[SPEED]) == args.speed):
+                    if ((args.printer is None or args.printer == ID_TO_PRINTER.get(group[PRINTER], group[PRINTER])) and
+                        (args.nozzle_diameter is None or args.nozzle_diameter == group[NOZZLE_DIAMETER]) and
+                        (args.layer_thick is None or args.layer_thick == group[LAYER_THICK]) and
+                            (args.speed is None or args.speed == ID_TO_SPEED.get(group[SPEED], group[SPEED]))):
                         if args.printer is not None:
                             print "PRINTER:", ID_TO_PRINTER[group[PRINTER]]
                         if args.nozzle_diameter is not None:
                             print "NOZZLE DIAMETER:", group[NOZZLE_DIAMETER]
                         if args.layer_height is not None:
-                            print "LAYER HEIGHT:", group[LAYER_HEIGHT]
+                            print "LAYER THICKNESS:", group[LAYER_THICK]
                         if args.speed is not None:
                             print "SPEED:", ID_TO_SPEED[group[SPEED]]
                         print "PRINT TEMP LOW:", group[PRINT_TEMP_LOW]
                         print "PRINT TEMP HIGH:", group[PRINT_TEMP_HIGH]
                         print "BED TEMPERATURE:", group[BED_TEMP_3]
-                        print "WITHDRAW:", group[WITHDRAW]
-                        print "PEEL RATIO:", group[PEEL_RATIO]
+                        print "MATERIAL WITHDRAW LENGTH:", group[MAT_WITHDRAW_LENGTH]
+                        print "P10:", group[P10]
                         print
                         print "[OUTLINE, INFILL, SUPPORT]"
                         print "LINE WIDTH:", group[LINE_WIDTH]
                         print "SCAN SPEED:", group[SCAN_SPEED]
                         print "SEND RATIO:", group[SEND_RATIO]
                         print "TEMP BIAS:", group[TEMP_BIAS]
-                        print "RETRACTION SPEED:", group[RETRACTION_SPEED]
+                        print "ASPEED:", group[ASPEED]
+                        print
+                        print "P16:", group[P16]
+                        print "JOGGLE SPEED:", group[JOGGLE_SPEED]
+                        print "P18:", group[P18]
+                        print "P19:", group[P19]
+                        print "PART SUPPORT HATCH SCALE:", group[PART_SUPPORT_HATCH_SCALE]
+                        print "P21:", group[P21]
+                        print "P22:", group[P22]
+                        print "RAFT LAYER THICKNESS:", group[RAFT_LAYER_THICK]
+                        print "RAFT PATH WIDTH:", group[RAFT_PATH_WIDTH]
+                        print "P25:", group[P25]
+                        print "P26:", group[P26]
+                        print "P27:", group[P27]
+                        print "P28:", group[P28]
                         break
 
                 output = json.dumps(data)
