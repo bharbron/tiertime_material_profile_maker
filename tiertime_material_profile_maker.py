@@ -89,14 +89,17 @@ def main():
     parser.add_argument("--nozzle-diameter", action="store", dest="nozzle_diameter", type=float, choices=[0.2, 0.4, 0.6],
                         help="Single nozzle diameter that these customizations will be applied to")
 
-    parser.add_argument("--layer-thickness", action="store", dest="layer_thick", type=float,
+    parser.add_argument("--layer-thickness", action="store", dest="layer_thickness", type=float,
                         help="Single layer height that these customizations will be applied to")
 
     parser.add_argument("--speed", action="store", dest="speed", type=str, choices=SPEED_TO_ID.keys(),
                         help="Single print speed these customizations will be applied to")
 
+    parser.add_argument("--basic-send-rate", action="store", dest="basic_send_rate", type=float,
+                        help="Basic send rate")
+
     parser.add_argument("--withdraw-length", action="store", dest="withdraw_length", type=int,
-                        help="Extrusion withdraw/retraction distance in mm")
+                        help="Material withdraw/retraction distance in mm")
 
     parser.add_argument("--p10", action="store", dest="p10", type=int,
                         help="Parameter p10")
@@ -137,7 +140,7 @@ def main():
     parser.add_argument("--p22", action="store", dest="p22", type=float,
                         help="Parameter p22")
 
-    parser.add_argument("--raft-layer-thickness", action="store", dest="raft_layer_thickness", type=float,
+    parser.add_argument("--raft-layer-thickness", action="store", dest="raft_layer_thicknessness", type=float,
                         help="Raft layer thickness")
 
     parser.add_argument("--raft-path-width", action="store", dest="raft_path_width", type=float,
@@ -190,11 +193,12 @@ def main():
                 for group in data["group"]:
                     if ((args.printer is None or args.printer == ID_TO_PRINTER.get(group[PRINTER], group[PRINTER])) and
                         (args.nozzle_diameter is None or args.nozzle_diameter == group[NOZZLE_DIAMETER]) and
-                        (args.layer_thick is None or args.layer_thick == group[LAYER_THICK]) and
+                        (args.layer_thickness is None or args.layer_thickness == group[LAYER_THICK]) and
                             (args.speed is None or args.speed == ID_TO_SPEED.get(group[SPEED], group[SPEED]))):
                         print "Updating printer {0}, nozzle {1}, layer {2}, speed {3}".format(
                             ID_TO_PRINTER.get(group[PRINTER], group[PRINTER]
                                               ), group[NOZZLE_DIAMETER], group[LAYER_THICK], ID_TO_SPEED.get(group[SPEED], group[SPEED]))
+                        group[BASIC_SEND_RATE] = args.basic_send_rate if args.basic_send_rate is not None else group[BASIC_SEND_RATE]
                         group[PRINT_TEMP_LOW] = args.temperature if args.temperature is not None else group[PRINT_TEMP_LOW]
                         group[PRINT_TEMP_HIGH] = args.temperature + 10 if args.temperature is not None else group[PRINT_TEMP_HIGH]
                         group[BED_TEMP_3] = args.bed_temp if args.bed_temp is not None else group[BED_TEMP_3]
@@ -215,7 +219,7 @@ def main():
                             group[PART_SUPPORT_HATCH_SCALE]
                         group[P21] = args.p21 if args.p21 is not None else group[P21]
                         group[P22] = args.p22 if args.p22 is not None else group[P22]
-                        group[RAFT_LAYER_THICK] = args.raft_layer_thickness if args.raft_layer_thickness is not None else group[RAFT_LAYER_THICK]
+                        group[RAFT_LAYER_THICK] = args.raft_layer_thicknessness if args.raft_layer_thicknessness is not None else group[RAFT_LAYER_THICK]
                         group[RAFT_PATH_WIDTH] = args.raft_path_width if args.raft_path_width is not None else group[RAFT_PATH_WIDTH]
                         group[P25] = args.p25 if args.p25 is not None else group[P25]
                         group[P26] = args.p26 if args.p26 is not None else group[P26]
@@ -238,16 +242,17 @@ def main():
                 for group in data["group"]:
                     if ((args.printer is None or args.printer == ID_TO_PRINTER.get(group[PRINTER], group[PRINTER])) and
                         (args.nozzle_diameter is None or args.nozzle_diameter == group[NOZZLE_DIAMETER]) and
-                        (args.layer_thick is None or args.layer_thick == group[LAYER_THICK]) and
+                        (args.layer_thickness is None or args.layer_thickness == group[LAYER_THICK]) and
                             (args.speed is None or args.speed == ID_TO_SPEED.get(group[SPEED], group[SPEED]))):
                         if args.printer is not None:
                             print "PRINTER:", ID_TO_PRINTER[group[PRINTER]]
                         if args.nozzle_diameter is not None:
                             print "NOZZLE DIAMETER:", group[NOZZLE_DIAMETER]
-                        if args.layer_height is not None:
+                        if args.layer_thickness is not None:
                             print "LAYER THICKNESS:", group[LAYER_THICK]
                         if args.speed is not None:
                             print "SPEED:", ID_TO_SPEED[group[SPEED]]
+                        print "BASIC SEND RATE:", group[BASIC_SEND_RATE]
                         print "PRINT TEMP LOW:", group[PRINT_TEMP_LOW]
                         print "PRINT TEMP HIGH:", group[PRINT_TEMP_HIGH]
                         print "BED TEMPERATURE:", group[BED_TEMP_3]
