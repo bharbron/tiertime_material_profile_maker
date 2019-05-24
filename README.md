@@ -1,29 +1,38 @@
 # tiertime_material_profile_maker
 Python script for generating a custom material profile .FMD file for TierTime 3d Printers.
 
-The current Mac OS X version of UP Studio allows you to _import_ new material profiles, but it does not allow you to _create_ new profiles. This script is an attempt at a workaround for that.
+The current Mac OS X version of UP Studio allows you to _import_ new material profiles, but it does not allow you to _create_ new profiles. This script is an attempt at a workaround for that and allow OS X users to create custom materials as well.
+
+## Usage
 
 ```
 usage: tiertime_material_profile_maker.py [-h] [--template-file TEMPLATE_FILE]
-                                          --template {ABS,ABS+,PLA,TPU,CUSTOM}
-                                          --name NAME --manufacturer
-                                          MANUFACTURER
+                                          [--unencoded-template] --copy-from
+                                          {ABS,ABS+,PLA,TPU,CUSTOM} --name
+                                          NAME --manufacturer MANUFACTURER
                                           [--temperature TEMPERATURE]
                                           [--bed-temp BED_TEMP]
                                           [--diameter DIAMETER]
                                           [--density DENSITY]
                                           [--shrinkage SHRINKAGE SHRINKAGE SHRINKAGE]
-                                          [--printer {default,up_mini_2}]
+                                          [--printer {10104,10105,10111,10114,10115,default,up_mini_2}]
                                           [--nozzle-diameter {0.2,0.4,0.6}]
-                                          [--layer-height LAYER_HEIGHT]
-                                          [--speed {fine,superfast,fast,normal}]
-                                          [--withdraw WITHDRAW]
-                                          [--peel-ratio PEEL_RATIO]
+                                          [--layer-thickness {0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4}]
+                                          [--speed {fast,fine,normal,superfast}]
+                                          [--withdraw-length WITHDRAW_LENGTH]
+                                          [--p10 P10]
                                           [--line-width LINE_WIDTH LINE_WIDTH LINE_WIDTH]
                                           [--scan-speed SCAN_SPEED SCAN_SPEED SCAN_SPEED]
                                           [--send-ratio SEND_RATIO SEND_RATIO SEND_RATIO]
                                           [--temp-bias TEMP_BIAS TEMP_BIAS TEMP_BIAS]
-                                          [--retraction-speed RESTRACTION_SPEED]
+                                          [--aspeed ASPEED ASPEED ASPEED]
+                                          [--p16 P16] [--p18 P18] [--p19 P19]
+                                          [--part-support-hatch-scale PART_SUPPORT_HATCH_SCALE]
+                                          [--p21 P21] [--p22 P22]
+                                          [--raft-layer-thickness RAFT_LAYER_THICKNESSNESS]
+                                          [--raft-path-width RAFT_PATH_WIDTH]
+                                          [--p25 P25] [--p26 P26] [--p27 P27]
+                                          [--p28 P28] [--non-encoded-output]
                                           output
 
 positional arguments:
@@ -33,10 +42,15 @@ optional arguments:
   -h, --help            show this help message and exit
   --template-file TEMPLATE_FILE
                         Optional alternative .FMD file to use as the source
-                        template for customization
-  --template {ABS,ABS+,PLA,TPU,CUSTOM}
-                        Built-in Tiertime material to base this on: ABS, ABS+,
-                        PLA or TPU
+                        template for customization. Defaults to
+                        "/Applications/UP
+                        Studio.app/Contents/Resources/DB/vendor.fmd" if not
+                        provided.
+  --unencoded-template  Template file will be assumed to not be hex encoded
+                        and will therefor not be decoded
+  --copy-from {ABS,ABS+,PLA,TPU,CUSTOM}
+                        Built-in Tiertime material to base new material on:
+                        ABS, ABS+, PLA or TPU
   --name NAME           Material name, e.g. "PLA+"
   --manufacturer MANUFACTURER
                         Manufacturer name, e.g. "eSun"
@@ -47,21 +61,21 @@ optional arguments:
   --density DENSITY     Material density
   --shrinkage SHRINKAGE SHRINKAGE SHRINKAGE
                         Material shrinkage percentage
-  --printer {default,up_mini_2}
-                        Single printer that these customizations will be
-                        applied to
+  --printer {10104,10105,10111,10114,10115,default,up_mini_2}
+                        Printer type that these customizations will be applied
+                        to
   --nozzle-diameter {0.2,0.4,0.6}
-                        Single nozzle diameter that these customizations will
-                        be applied to
-  --layer-height LAYER_HEIGHT
-                        Single layer height that these customizations will be
+                        Nozzle diameter that these customizations will be
                         applied to
-  --speed {fine,superfast,fast,normal}
-                        Single print speed these customizations will be
+  --layer-thickness {0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4}
+                        Layer height that these customizations will be applied
+                        to
+  --speed {fast,fine,normal,superfast}
+                        Print speed/quality these customizations will be
                         applied to
-  --withdraw WITHDRAW   Extrusion withdraw/retraction distance in mm
-  --peel-ratio PEEL_RATIO
-                        Peel ratio for raft and supports, from 0 to 100
+  --withdraw-length WITHDRAW_LENGTH
+                        Material withdraw/retraction distance in mm
+  --p10 P10             Parameter p10
   --line-width LINE_WIDTH LINE_WIDTH LINE_WIDTH
                         Line width in float [outline, infill, support]
   --scan-speed SCAN_SPEED SCAN_SPEED SCAN_SPEED
@@ -70,6 +84,41 @@ optional arguments:
                         Send ratio in float [outline, infill, support]
   --temp-bias TEMP_BIAS TEMP_BIAS TEMP_BIAS
                         Temperature bias in int [outline, infill, support]
-  --retraction-speed RESTRACTION_SPEED
-                        Speed of withdraw/retraction in mm/s
+  --aspeed ASPEED ASPEED ASPEED
+                        Acceleration in int [outlint, infill, support]
+  --p16 P16             Parameter p16
+  --p18 P18             Parameter p18
+  --p19 P19             Parameter p19
+  --part-support-hatch-scale PART_SUPPORT_HATCH_SCALE
+                        Part support hatch scale (?)
+  --p21 P21             Parameter p21
+  --p22 P22             Parameter p22
+  --raft-layer-thickness RAFT_LAYER_THICKNESSNESS
+                        Raft layer thickness
+  --raft-path-width RAFT_PATH_WIDTH
+                        Raft path width
+  --p25 P25             Parameter p25
+  --p26 P26             Parameter p26
+  --p27 P27             Parameter p27
+  --p28 P28             Parameter p28
+  --non-encoded-output  Do not hex encode the output file. Useful if you want
+                        to make manual changes before encoding.
+```
+
+## Example
+
+Example of creating a custom material profile, with configurations for several different printers, layer thicknesses, and speeds. Note how we name the material `CUSTOM` until the final step so that we can do `--copy-from CUSTOM` (`--copy-from` being limited to ABS,ABS+,PLA,TPU and CUSTOM). Also note the use of `--non-encoded-output` and `--unencoded-template` to allow manual edits to be made to the .fmd file:
+
+```
+python tiertime_material_profile_maker.py --copy-from PLA --name CUSTOM --manufacturer CUSTOM --temperature 205 --bed-temp 0 --diameter 1.75 --density 1.24 custom.fmd
+python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer default --nozzle-diameter 0.4 --layer-thickness 0.1 --line-width 0.4 0.7 0.47 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
+python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer default --nozzle-diameter 0.4 --layer-thickness 0.15 --line-width 0.42 0.76 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
+python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer default --nozzle-diameter 0.4 --layer-thickness 0.2 --line-width 0.4 0.75 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
+python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --line-width 0.42 0.76 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
+python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.2 --line-width 0.4 0.75 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
+python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --speed normal --non-encoded-output UNENCODED_custom.fmd
+
+# Open UNENCODED_custom.fmd in a text editor, validate, make some manual edits, etc.
+
+python tiertime_material_profile_maker.py --template-file UNENCODED_custom.fmd --unencoded-template --copy-from CUSTOM --name 205PLA+ --manufacturer eSun --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --speed normal esun_plaplus_205.fmd
 ```

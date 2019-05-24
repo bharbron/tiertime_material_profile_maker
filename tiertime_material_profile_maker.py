@@ -17,7 +17,7 @@ MAT_DIAMETER = "b7"
 MAT_DENSITY = "b8"
 SHRINKAGE = "b9"
 PRINTER = "p1"
-ID_TO_PRINTER = {-1: "default", 10112: "up_mini_2"}
+ID_TO_PRINTER = {-1: "default", 10112: "up_mini_2", 10104: "10104", 10105: "10105", 10111: "10111", 10114: "10114", 10115: "10115"}
 PRINTER_TO_ID = dict(reversed(item) for item in ID_TO_PRINTER.items())
 NOZZLE_DIAMETER = "p2"
 LAYER_THICK = "p3"
@@ -85,16 +85,16 @@ def main():
     parser.add_argument("--shrinkage", action="store", dest="shrinkage", type=float, nargs=3,
                         help="Material shrinkage percentage")
 
-    parser.add_argument("--printer", action="store", dest="printer", type=str, choices=PRINTER_TO_ID.keys(),
+    parser.add_argument("--printer", action="store", dest="printer", type=str, choices=sorted(PRINTER_TO_ID.keys()),
                         help="Printer type that these customizations will be applied to")
 
     parser.add_argument("--nozzle-diameter", action="store", dest="nozzle_diameter", type=float, choices=[0.2, 0.4, 0.6],
                         help="Nozzle diameter that these customizations will be applied to")
 
-    parser.add_argument("--layer-thickness", action="store", dest="layer_thickness", type=float,
+    parser.add_argument("--layer-thickness", action="store", dest="layer_thickness", type=float, choices=[0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4],
                         help="Layer height that these customizations will be applied to")
 
-    parser.add_argument("--speed", action="store", dest="speed", type=str, choices=SPEED_TO_ID.keys(),
+    parser.add_argument("--speed", action="store", dest="speed", type=str, choices=sorted(SPEED_TO_ID.keys()),
                         help="Print speed/quality these customizations will be applied to")
 
     # parser.add_argument("--basic-send-rate", action="store", dest="basic_send_rate", type=float,
