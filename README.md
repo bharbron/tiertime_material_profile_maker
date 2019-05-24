@@ -3,6 +3,10 @@ Python script for generating a custom material profile .FMD file for TierTime 3d
 
 The current Mac OS X version of UP Studio allows you to _import_ new material profiles, but it does not allow you to _create_ new profiles. This script is an attempt at a workaround for that and allow OS X users to create custom materials as well.
 
+### Disclaimer
+
+I make no claim or guarantee that any of this will work at all. I've included very little input validation, I can't guarantee that any of the parameter mappings are correct. You can probably screw up UP Studio or your printer with some bad values. (It does seem that UP Studio does some input validation on material profile import.) Proceed at your own risk.
+
 ## Usage
 
 ```
@@ -112,9 +116,9 @@ Example of creating a custom material profile, with configurations for several d
 ```
 python tiertime_material_profile_maker.py --copy-from PLA --name CUSTOM --manufacturer CUSTOM --temperature 205 --bed-temp 0 --diameter 1.75 --density 1.24 custom.fmd
 python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer default --nozzle-diameter 0.4 --layer-thickness 0.1 --line-width 0.4 0.7 0.47 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
-python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer default --nozzle-diameter 0.4 --layer-thickness 0.15 --line-width 0.42 0.76 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
+python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer default --nozzle-diameter 0.4 --layer-thickness 0.15 --line-width 0.42 0.72 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
 python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer default --nozzle-diameter 0.4 --layer-thickness 0.2 --line-width 0.4 0.75 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
-python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --line-width 0.42 0.76 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
+python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --line-width 0.42 0.72 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
 python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.2 --line-width 0.4 0.75 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
 python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --speed normal --non-encoded-output UNENCODED_custom.fmd
 
