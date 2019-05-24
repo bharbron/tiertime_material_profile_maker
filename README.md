@@ -22,9 +22,9 @@ usage: tiertime_material_profile_maker.py [-h] [--template-file TEMPLATE_FILE]
                                           [--printer {10104,10105,10111,10114,10115,default,up_mini_2}]
                                           [--nozzle-diameter {0.2,0.4,0.6}]
                                           [--layer-thickness {0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4}]
-                                          [--speed {fast,fine,normal,superfast}]
+                                          [--quality {fast,fine,normal,superfast}]
                                           [--withdraw-length WITHDRAW_LENGTH]
-                                          [--p10 P10]
+                                          [--peel-ratio PEEL_RATIO]
                                           [--line-width LINE_WIDTH LINE_WIDTH LINE_WIDTH]
                                           [--scan-speed SCAN_SPEED SCAN_SPEED SCAN_SPEED]
                                           [--send-ratio SEND_RATIO SEND_RATIO SEND_RATIO]
@@ -74,12 +74,13 @@ optional arguments:
   --layer-thickness {0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4}
                         Layer height that these customizations will be applied
                         to
-  --speed {fast,fine,normal,superfast}
+  --quality {fast,fine,normal,superfast}
                         Print speed/quality these customizations will be
                         applied to
   --withdraw-length WITHDRAW_LENGTH
                         Material withdraw/retraction distance in mm
-  --p10 P10             Parameter p10
+  --peel-ratio PEEL_RATIO
+                        Peel ratio from 0 to 100
   --line-width LINE_WIDTH LINE_WIDTH LINE_WIDTH
                         Line width in float [outline, infill, support]
   --scan-speed SCAN_SPEED SCAN_SPEED SCAN_SPEED
@@ -120,7 +121,7 @@ python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from
 python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer default --nozzle-diameter 0.4 --layer-thickness 0.2 --line-width 0.4 0.75 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
 python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --line-width 0.42 0.72 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
 python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.2 --line-width 0.4 0.75 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
-python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --speed normal --non-encoded-output UNENCODED_custom.fmd
+python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --quality normal --non-encoded-output UNENCODED_custom.fmd
 
 # Open UNENCODED_custom.fmd in a text editor, validate, make some manual edits, etc.
 

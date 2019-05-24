@@ -17,19 +17,19 @@ MAT_DIAMETER = "b7"
 MAT_DENSITY = "b8"
 SHRINKAGE = "b9"
 PRINTER = "p1"
-ID_TO_PRINTER = {-1: "default", 10112: "up_mini_2", 10104: "10104", 10105: "10105", 10111: "10111", 10114: "10114", 10115: "10115"}
+ID_TO_PRINTER = {-1: "default", 10112: "up_mini_2", 10104: "10104", 10105: "10105", 10111: "10111", 10114: "10114", 10115: "10115"}  # 10105 = up_300?
 PRINTER_TO_ID = dict(reversed(item) for item in ID_TO_PRINTER.items())
 NOZZLE_DIAMETER = "p2"
 LAYER_THICK = "p3"
-SPEED = "p4"
-ID_TO_SPEED = {0: "normal", 1: "fine", 2: "fast", 3: "superfast"}
-SPEED_TO_ID = dict(reversed(item) for item in ID_TO_SPEED.items())
+QUALITY = "p4"
+ID_TO_QUALITY = {0: "normal", 1: "fine", 2: "fast", 3: "superfast"}
+QUALITY_TO_ID = dict(reversed(item) for item in ID_TO_QUALITY.items())
 BASIC_SEND_RATE = "p5"  # resets on import to UP Studio
 PRINT_TEMP_LOW = "p6"
 PRINT_TEMP_HIGH = "p7"
 BED_TEMP_3 = "p8"
 MAT_WITHDRAW_LENGTH = "p9"
-P10 = "p10"
+PEEL_RATIO = "p10"
 LINE_WIDTH = "p11"  # -0.15 to +0.25 of default: 0.47 @ 0.15, 0.5 @ 0.2, 0.53 @ 0.25, 0.55 @ 0.3, 0.6 @ 0.35
 SCAN_SPEED = "p12"
 SEND_RATIO = "p13"
@@ -94,7 +94,7 @@ def main():
     parser.add_argument("--layer-thickness", action="store", dest="layer_thickness", type=float, choices=[0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4],
                         help="Layer height that these customizations will be applied to")
 
-    parser.add_argument("--speed", action="store", dest="speed", type=str, choices=sorted(SPEED_TO_ID.keys()),
+    parser.add_argument("--quality", action="store", dest="quality", type=str, choices=sorted(QUALITY_TO_ID.keys()),
                         help="Print speed/quality these customizations will be applied to")
 
     # parser.add_argument("--basic-send-rate", action="store", dest="basic_send_rate", type=float,
@@ -103,8 +103,8 @@ def main():
     parser.add_argument("--withdraw-length", action="store", dest="withdraw_length", type=int,
                         help="Material withdraw/retraction distance in mm")
 
-    parser.add_argument("--p10", action="store", dest="p10", type=int,
-                        help="Parameter p10")
+    parser.add_argument("--peel-ratio", action="store", dest="peel_ratio", type=int,
+                        help="Peel ratio from 0 to 100")
 
     parser.add_argument("--line-width", action="store", dest="line_width", type=float, nargs=3,
                         help="Line width in float [outline, infill, support]")
@@ -197,16 +197,16 @@ def main():
                     if ((args.printer is None or args.printer == ID_TO_PRINTER.get(group[PRINTER], group[PRINTER])) and
                         (args.nozzle_diameter is None or args.nozzle_diameter == group[NOZZLE_DIAMETER]) and
                         (args.layer_thickness is None or args.layer_thickness == group[LAYER_THICK]) and
-                            (args.speed is None or args.speed == ID_TO_SPEED.get(group[SPEED], group[SPEED]))):
+                            (args.quality is None or args.quality == ID_TO_QUALITY.get(group[QUALITY], group[QUALITY]))):
                         print "Updating printer {0}, nozzle {1}, layer {2}, speed {3}".format(
                             ID_TO_PRINTER.get(group[PRINTER], group[PRINTER]
-                                              ), group[NOZZLE_DIAMETER], group[LAYER_THICK], ID_TO_SPEED.get(group[SPEED], group[SPEED]))
+                                              ), group[NOZZLE_DIAMETER], group[LAYER_THICK], ID_TO_QUALITY.get(group[QUALITY], group[QUALITY]))
                         # group[BASIC_SEND_RATE] = args.basic_send_rate if args.basic_send_rate is not None else group[BASIC_SEND_RATE]
                         group[PRINT_TEMP_LOW] = args.temperature if args.temperature is not None else group[PRINT_TEMP_LOW]
                         group[PRINT_TEMP_HIGH] = args.temperature + 10 if args.temperature is not None else group[PRINT_TEMP_HIGH]
                         group[BED_TEMP_3] = args.bed_temp if args.bed_temp is not None else group[BED_TEMP_3]
                         group[MAT_WITHDRAW_LENGTH] = args.withdraw_length if args.withdraw_length is not None else group[MAT_WITHDRAW_LENGTH]
-                        group[P10] = args.p10 if args.p10 is not None else group[P10]
+                        group[PEEL_RATIO] = args.peel_ratio if args.peel_ratio is not None else group[PEEL_RATIO]
                         group[LINE_WIDTH] = [args.line_width[0], args.line_width[1], args.line_width[2]] if args.line_width is not None else group[LINE_WIDTH]
                         group[SCAN_SPEED] = [args.scan_speed[0], args.scan_speed[1], args.scan_speed[2]] if args.scan_speed is not None else group[SCAN_SPEED]
                         group[SEND_RATIO] = [args.send_ratio[0], args.send_ratio[1], args.send_ratio[2]] if args.send_ratio is not None else group[SEND_RATIO]
@@ -246,17 +246,17 @@ def main():
                     if ((args.printer is None or args.printer == ID_TO_PRINTER.get(group[PRINTER], group[PRINTER])) and
                         (args.nozzle_diameter is None or args.nozzle_diameter == group[NOZZLE_DIAMETER]) and
                         (args.layer_thickness is None or args.layer_thickness == group[LAYER_THICK]) and
-                            (args.speed is None or args.speed == ID_TO_SPEED.get(group[SPEED], group[SPEED]))):
+                            (args.quality is None or args.quality == ID_TO_QUALITY.get(group[QUALITY], group[QUALITY]))):
                         print "PRINTER:", ID_TO_PRINTER[group[PRINTER]]
                         print "NOZZLE DIAMETER:", group[NOZZLE_DIAMETER]
                         print "LAYER THICKNESS:", group[LAYER_THICK]
-                        print "SPEED:", ID_TO_SPEED[group[SPEED]]
+                        print "QUALITY:", ID_TO_QUALITY[group[QUALITY]]
                         print "BASIC SEND RATE:", group[BASIC_SEND_RATE]
                         print "PRINT TEMP LOW:", group[PRINT_TEMP_LOW]
                         print "PRINT TEMP HIGH:", group[PRINT_TEMP_HIGH]
                         print "BED TEMPERATURE:", group[BED_TEMP_3]
                         print "MATERIAL WITHDRAW LENGTH:", group[MAT_WITHDRAW_LENGTH]
-                        print "P10:", group[P10]
+                        print "PEEL RATIO:", group[PEEL_RATIO]
                         print
                         print "[OUTLINE, INFILL, SUPPORT]"
                         print "LINE WIDTH:", group[LINE_WIDTH]
