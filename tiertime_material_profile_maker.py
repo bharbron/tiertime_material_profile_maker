@@ -18,25 +18,25 @@ MAT_DENSITY = "b8"
 SHRINKAGE = "b9"
 PRINTER = "p1"
 ID_TO_PRINTER = {-1: "default", 10112: "up_mini_2"}
-PRINTER_TO_ID = {"default": -1, "up_mini_2": 10112}
+PRINTER_TO_ID = dict(reversed(item) for item in ID_TO_PRINTER.items())
 NOZZLE_DIAMETER = "p2"
 LAYER_THICK = "p3"
 SPEED = "p4"
 ID_TO_SPEED = {0: "normal", 1: "fine", 2: "fast", 3: "superfast"}
-SPEED_TO_ID = {"normal": 0, "fine": 1, "fast": 2, "superfast": 3}
-BASIC_SEND_RATE = "p5"
+SPEED_TO_ID = dict(reversed(item) for item in ID_TO_SPEED.items())
+BASIC_SEND_RATE = "p5"  # resets on import to UP Studio
 PRINT_TEMP_LOW = "p6"
 PRINT_TEMP_HIGH = "p7"
 BED_TEMP_3 = "p8"
 MAT_WITHDRAW_LENGTH = "p9"
 P10 = "p10"
-LINE_WIDTH = "p11"
+LINE_WIDTH = "p11"  # -0.15 to +0.25 of default: 0.47 @ 0.15, 0.5 @ 0.2, 0.53 @ 0.25, 0.55 @ 0.3, 0.6 @ 0.35
 SCAN_SPEED = "p12"
 SEND_RATIO = "p13"
 TEMP_BIAS = "p14"
-ASPEED = "p15"
+ASPEED = "p15"          # enforces a min of 1000 on import to UP Studio
 P16 = "p16"
-JOGGLE_SPEED = "p17"
+JOGGLE_SPEED = "p17"    # resets on import to UP Studio
 P18 = "p18"
 P19 = "p19"
 PART_SUPPORT_HATCH_SCALE = "p20"
@@ -49,18 +49,20 @@ P26 = "p26"
 P27 = "p27"
 P28 = "p28"
 
-# Where the FMD file that ships with UP Studio should be
-VENDOR_PATH = '/Applications/UP Studio.app/Contents/Resources/DB/vendor.fmd'
-
 
 def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--template-file", action="store", dest="template_file", type=str,
-                        help="Optional alternative .FMD file to use as the source template for customization")
+                        default="/Applications/UP Studio.app/Contents/Resources/DB/vendor.fmd",
+                        help="Optional alternative .FMD file to use as the source template for customization. \
+                        Defaults to \"/Applications/UP Studio.app/Contents/Resources/DB/vendor.fmd\" if not provided.")
 
-    parser.add_argument("--template", action="store", dest="template", type=str, required=True, choices=["ABS", "ABS+", "PLA", "TPU", "CUSTOM"],
-                        help="Built-in Tiertime material to base this on: ABS, ABS+, PLA or TPU")
+    parser.add_argument("--unencoded-template", action="store_true", dest="unencoded_template", default=False,
+                        help="Template file will be assumed to not be hex encoded and will therefor not be decoded")
+
+    parser.add_argument("--copy-from", action="store", dest="copy_from", type=str, required=True, choices=["ABS", "ABS+", "PLA", "TPU", "CUSTOM"],
+                        help="Built-in Tiertime material to base new material on: ABS, ABS+, PLA or TPU")
 
     parser.add_argument("--name", action="store", dest="name", type=str, required=True,
                         help="Material name, e.g. \"PLA+\"")
@@ -84,19 +86,19 @@ def main():
                         help="Material shrinkage percentage")
 
     parser.add_argument("--printer", action="store", dest="printer", type=str, choices=PRINTER_TO_ID.keys(),
-                        help="Single printer that these customizations will be applied to")
+                        help="Printer type that these customizations will be applied to")
 
     parser.add_argument("--nozzle-diameter", action="store", dest="nozzle_diameter", type=float, choices=[0.2, 0.4, 0.6],
-                        help="Single nozzle diameter that these customizations will be applied to")
+                        help="Nozzle diameter that these customizations will be applied to")
 
     parser.add_argument("--layer-thickness", action="store", dest="layer_thickness", type=float,
-                        help="Single layer height that these customizations will be applied to")
+                        help="Layer height that these customizations will be applied to")
 
     parser.add_argument("--speed", action="store", dest="speed", type=str, choices=SPEED_TO_ID.keys(),
-                        help="Single print speed these customizations will be applied to")
+                        help="Print speed/quality these customizations will be applied to")
 
-    parser.add_argument("--basic-send-rate", action="store", dest="basic_send_rate", type=float,
-                        help="Basic send rate")
+    # parser.add_argument("--basic-send-rate", action="store", dest="basic_send_rate", type=float,
+    #                    help="Basic send rate")
 
     parser.add_argument("--withdraw-length", action="store", dest="withdraw_length", type=int,
                         help="Material withdraw/retraction distance in mm")
@@ -122,8 +124,8 @@ def main():
     parser.add_argument("--p16", action="store", dest="p16", type=float,
                         help="Parameter p16")
 
-    parser.add_argument("--joggle-speed", action="store", dest="joggle_speed", type=int,
-                        help="Joggle speed (travel speed???)")
+    # parser.add_argument("--joggle-speed", action="store", dest="joggle_speed", type=int,
+    #                     help="Joggle speed (travel speed???)")
 
     parser.add_argument("--p18", action="store", dest="p18", type=float,
                         help="Parameter p18")
@@ -158,20 +160,21 @@ def main():
     parser.add_argument("--p28", action="store", dest="p28", type=int,
                         help="Parameter p28")
 
+    parser.add_argument("--non-encoded-output", action="store_true", dest="non_encoded_output", default=False,
+                        help="Do not hex encode the output file. Useful if you want to make manual changes before encoding.")
+
     parser.add_argument("output", action="store", type=str,
                         help="The filename for the new custom material .fmd file")
 
     args = parser.parse_args()
 
-    template_path = args.template_file if args.template_file is not None else VENDOR_PATH
-
-    with open(template_path, 'r') as fmdFile:
+    with open(args.template_file, 'r') as fmdFile:
         materials = []
         version = fmdFile.readline()
         for line in fmdFile:
-            raw = binascii.unhexlify(line.strip())
+            raw = line.strip() if args.unencoded_template else binascii.unhexlify(line.strip())
             data = json.JSONDecoder(object_pairs_hook=OrderedDict).decode(raw)
-            if data[NAME] == args.template:
+            if data[NAME] == args.copy_from:
 
                 # UP Studio won't import materials that match an existing ID
                 data[MAT_ID] = time.time()
@@ -198,7 +201,7 @@ def main():
                         print "Updating printer {0}, nozzle {1}, layer {2}, speed {3}".format(
                             ID_TO_PRINTER.get(group[PRINTER], group[PRINTER]
                                               ), group[NOZZLE_DIAMETER], group[LAYER_THICK], ID_TO_SPEED.get(group[SPEED], group[SPEED]))
-                        group[BASIC_SEND_RATE] = args.basic_send_rate if args.basic_send_rate is not None else group[BASIC_SEND_RATE]
+                        # group[BASIC_SEND_RATE] = args.basic_send_rate if args.basic_send_rate is not None else group[BASIC_SEND_RATE]
                         group[PRINT_TEMP_LOW] = args.temperature if args.temperature is not None else group[PRINT_TEMP_LOW]
                         group[PRINT_TEMP_HIGH] = args.temperature + 10 if args.temperature is not None else group[PRINT_TEMP_HIGH]
                         group[BED_TEMP_3] = args.bed_temp if args.bed_temp is not None else group[BED_TEMP_3]
@@ -210,7 +213,7 @@ def main():
                         group[TEMP_BIAS] = [args.temp_bias[0], args.temp_bias[1], args.temp_bias[2]] if args.temp_bias is not None else group[TEMP_BIAS]
                         group[ASPEED] = [args.aspeed[0], args.aspeed[1], args.aspeed[2]] if args.aspeed is not None else group[ASPEED]
                         group[P16] = args.p16 if args.p16 is not None else group[P16]
-                        group[JOGGLE_SPEED] = args.joggle_speed if args.joggle_speed is not None else group[JOGGLE_SPEED]
+                        # group[JOGGLE_SPEED] = args.joggle_speed if args.joggle_speed is not None else group[JOGGLE_SPEED]
                         group[P18] = args.p18 if args.p18 is not None else group[P18]
                         group[P19] = args.p19 if args.p19 is not None else group[P19]
                         if args.part_support_hatch_scale is not None:
@@ -244,14 +247,10 @@ def main():
                         (args.nozzle_diameter is None or args.nozzle_diameter == group[NOZZLE_DIAMETER]) and
                         (args.layer_thickness is None or args.layer_thickness == group[LAYER_THICK]) and
                             (args.speed is None or args.speed == ID_TO_SPEED.get(group[SPEED], group[SPEED]))):
-                        if args.printer is not None:
-                            print "PRINTER:", ID_TO_PRINTER[group[PRINTER]]
-                        if args.nozzle_diameter is not None:
-                            print "NOZZLE DIAMETER:", group[NOZZLE_DIAMETER]
-                        if args.layer_thickness is not None:
-                            print "LAYER THICKNESS:", group[LAYER_THICK]
-                        if args.speed is not None:
-                            print "SPEED:", ID_TO_SPEED[group[SPEED]]
+                        print "PRINTER:", ID_TO_PRINTER[group[PRINTER]]
+                        print "NOZZLE DIAMETER:", group[NOZZLE_DIAMETER]
+                        print "LAYER THICKNESS:", group[LAYER_THICK]
+                        print "SPEED:", ID_TO_SPEED[group[SPEED]]
                         print "BASIC SEND RATE:", group[BASIC_SEND_RATE]
                         print "PRINT TEMP LOW:", group[PRINT_TEMP_LOW]
                         print "PRINT TEMP HIGH:", group[PRINT_TEMP_HIGH]
@@ -282,15 +281,15 @@ def main():
                         break
 
                 output = json.dumps(data)
-                encoded = binascii.hexlify(output)
-                materials.append(encoded)
+                material = output if args.non_encoded_output else binascii.hexlify(output)
+                materials.append(material)
                 break
 
         # Write modified version to file
         with open(args.output, 'w') as output:
             output.write(version)
-            for encoded in materials:
-                output.write(encoded)
+            for material in materials:
+                output.write(material)
                 output.write("\r\n")
 
         print "\nWritten to", args.output
