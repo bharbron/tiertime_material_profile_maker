@@ -5,7 +5,7 @@ The current Mac OS X version of UP Studio allows you to _import_ new material pr
 
 ### Disclaimer
 
-I make no claim or guarantee that any of this will work at all. I've included very little input validation, I can't guarantee that any of the parameter mappings are correct. You can probably screw up UP Studio or your printer with some bad values. (It does seem that UP Studio does some input validation on material profile import.) Proceed at your own risk.
+I make no claim or guarantee that any of this will work at all. I've included very little input validation, I can't guarantee that any of the parameter mappings are correct. You can probably screw up UP Studio or your printer with some bad values. (It does seem that UP Studio does _some_ input validation on material profile import.) **Proceed at your own risk**.
 
 ## Usage
 
@@ -61,7 +61,10 @@ optional arguments:
   --temperature TEMPERATURE
                         Base extrusion temperature of meterial
   --bed-temp BED_TEMP   Print bed temperature
-  --diameter DIAMETER   Material diameter
+  --diameter DIAMETER   Material diameter. In my experience, I recommend not
+                        changing this. By default, Tiertime sets this at 1.7
+                        mm, even for 1.75 mm filaments. "Correcting" this to
+                        1.75 seems to have a negative effect on flow rate.
   --density DENSITY     Material density
   --shrinkage SHRINKAGE SHRINKAGE SHRINKAGE
                         Material shrinkage percentage
@@ -78,7 +81,7 @@ optional arguments:
                         Print speed/quality these customizations will be
                         applied to
   --withdraw-length WITHDRAW_LENGTH
-                        Material withdraw/retraction distance in mm
+                        Material withdraw/retraction distance
   --peel-ratio PEEL_RATIO
                         Peel ratio from 0 to 100
   --line-width LINE_WIDTH LINE_WIDTH LINE_WIDTH
@@ -90,22 +93,22 @@ optional arguments:
   --temp-bias TEMP_BIAS TEMP_BIAS TEMP_BIAS
                         Temperature bias in int [outline, infill, support]
   --aspeed ASPEED ASPEED ASPEED
-                        Acceleration in int [outlint, infill, support]
-  --p16 P16             Parameter p16
-  --p18 P18             Parameter p18
-  --p19 P19             Parameter p19
+                        Acceleration (?) in int [outlint, infill, support]
+  --p16 P16             Parameter p16 EXPERIMENTAL
+  --p18 P18             Parameter p18 EXPERIMENTAL
+  --p19 P19             Parameter p19 EXPERIMENTAL
   --part-support-hatch-scale PART_SUPPORT_HATCH_SCALE
-                        Part support hatch scale (?)
-  --p21 P21             Parameter p21
-  --p22 P22             Parameter p22
+                        ?? Part support hatch scale ?? EXPERIMENTAL
+  --p21 P21             Parameter p21 EXPERIMENTAL
+  --p22 P22             Parameter p22 EXPERIMENTAL
   --raft-layer-thickness RAFT_LAYER_THICKNESSNESS
-                        Raft layer thickness
+                        ?? Raft layer thickness ?? EXPERIMENTAL
   --raft-path-width RAFT_PATH_WIDTH
-                        Raft path width
-  --p25 P25             Parameter p25
-  --p26 P26             Parameter p26
-  --p27 P27             Parameter p27
-  --p28 P28             Parameter p28
+                        ?? Raft path width ?? EXPERIMENTAL
+  --p25 P25             Parameter p25 EXPERIMENTAL
+  --p26 P26             Parameter p26 EXPERIMENTAL
+  --p27 P27             Parameter p27 EXPERIMENTAL
+  --p28 P28             Parameter p28 EXPERIMENTAL
   --non-encoded-output  Do not hex encode the output file. Useful if you want
                         to make manual changes before encoding.
 ```

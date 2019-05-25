@@ -77,7 +77,9 @@ def parse_args():
                         help="Print bed temperature")
 
     parser.add_argument("--diameter", action="store", dest="diameter", type=float,
-                        help="Material diameter")
+                        help="Material diameter. In my experience, I recommend not changing this. \
+                        By default, Tiertime sets this at 1.7 mm, even for 1.75 mm filaments. \
+                        \"Correcting\" this to 1.75 seems to have a negative effect on flow rate.")
 
     parser.add_argument("--density", action="store", dest="density", type=float,
                         help="Material density")
@@ -101,7 +103,7 @@ def parse_args():
     #                    help="Basic send rate")
 
     parser.add_argument("--withdraw-length", action="store", dest="withdraw_length", type=int,
-                        help="Material withdraw/retraction distance in mm")
+                        help="Material withdraw/retraction distance")
 
     parser.add_argument("--peel-ratio", action="store", dest="peel_ratio", type=int,
                         help="Peel ratio from 0 to 100")
@@ -119,46 +121,46 @@ def parse_args():
                         help="Temperature bias in int [outline, infill, support]")
 
     parser.add_argument("--aspeed", action="store", dest="aspeed", type=int, nargs=3,
-                        help="Acceleration in int [outlint, infill, support]")
+                        help="Acceleration (?) in int [outlint, infill, support]")
 
     parser.add_argument("--p16", action="store", dest="p16", type=float,
-                        help="Parameter p16")
+                        help="Parameter p16 EXPERIMENTAL")
 
     # parser.add_argument("--joggle-speed", action="store", dest="joggle_speed", type=int,
     #                     help="Joggle speed (travel speed???)")
 
     parser.add_argument("--p18", action="store", dest="p18", type=float,
-                        help="Parameter p18")
+                        help="Parameter p18 EXPERIMENTAL")
 
     parser.add_argument("--p19", action="store", dest="p19", type=int,
-                        help="Parameter p19")
+                        help="Parameter p19 EXPERIMENTAL")
 
     parser.add_argument("--part-support-hatch-scale", action="store", dest="part_support_hatch_scale", type=float,
-                        help="Part support hatch scale (?)")
+                        help="?? Part support hatch scale ?? EXPERIMENTAL")
 
     parser.add_argument("--p21", action="store", dest="p21", type=float,
-                        help="Parameter p21")
+                        help="Parameter p21 EXPERIMENTAL")
 
     parser.add_argument("--p22", action="store", dest="p22", type=float,
-                        help="Parameter p22")
+                        help="Parameter p22 EXPERIMENTAL")
 
     parser.add_argument("--raft-layer-thickness", action="store", dest="raft_layer_thicknessness", type=float,
-                        help="Raft layer thickness")
+                        help="?? Raft layer thickness ?? EXPERIMENTAL")
 
     parser.add_argument("--raft-path-width", action="store", dest="raft_path_width", type=float,
-                        help="Raft path width")
+                        help="?? Raft path width ?? EXPERIMENTAL")
 
     parser.add_argument("--p25", action="store", dest="p25", type=float,
-                        help="Parameter p25")
+                        help="Parameter p25 EXPERIMENTAL")
 
     parser.add_argument("--p26", action="store", dest="p26", type=int,
-                        help="Parameter p26")
+                        help="Parameter p26 EXPERIMENTAL")
 
     parser.add_argument("--p27", action="store", dest="p27", type=int,
-                        help="Parameter p27")
+                        help="Parameter p27 EXPERIMENTAL")
 
     parser.add_argument("--p28", action="store", dest="p28", type=int,
-                        help="Parameter p28")
+                        help="Parameter p28 EXPERIMENTAL")
 
     parser.add_argument("--non-encoded-output", action="store_true", dest="non_encoded_output", default=False,
                         help="Do not hex encode the output file. Useful if you want to make manual changes before encoding.")
