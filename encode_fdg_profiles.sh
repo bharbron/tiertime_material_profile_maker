@@ -1,0 +1,7 @@
+#!/bin/bash
+
+python tiertime_material_profile_maker.py --template-file UNENCODED_205_custom.fmd --unencoded-template --copy-from CUSTOM --name 205PLA+ --manufacturer eSun/FDG --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --quality normal esun_plaplus_fdg_profile_205_default_withdraw.fmd
+python tiertime_material_profile_maker.py --template-file UNENCODED_210_custom.fmd --unencoded-template --copy-from CUSTOM --name 210PLA+ --manufacturer eSun/FDG --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --quality normal esun_plaplus_fdg_profile_210_default_withdraw.fmd
+python tiertime_material_profile_maker.py --template-file UNENCODED_215_custom.fmd --unencoded-template --copy-from CUSTOM --name 215PLA+ --manufacturer eSun/FDG --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --quality normal esun_plaplus_fdg_profile_215_default_withdraw.fmd
+python tiertime_material_profile_maker.py --template-file UNENCODED_220_custom.fmd --unencoded-template --copy-from CUSTOM --name 220PLA+ --manufacturer eSun/FDG --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --quality normal esun_plaplus_fdg_profile_220_default_withdraw.fmd
+python tiertime_material_profile_maker.py --template-file UNENCODED_225_custom.fmd --unencoded-template --copy-from CUSTOM --name 225PLA+ --manufacturer eSun/FDG --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --quality normal esun_plaplus_fdg_profile_225_default_withdraw.fmd

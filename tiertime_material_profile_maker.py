@@ -2,9 +2,9 @@ import argparse
 import binascii
 import json
 import sys
-import time
 
 from collections import OrderedDict
+from random import randint
 
 # Useful keys in FMD materials
 MAT_ID = "b1"
@@ -50,7 +50,7 @@ P27 = "p27"
 P28 = "p28"
 
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--template-file", action="store", dest="template_file", type=str,
@@ -166,7 +166,11 @@ def main():
     parser.add_argument("output", action="store", type=str,
                         help="The filename for the new custom material .fmd file")
 
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
 
     with open(args.template_file, 'r') as fmdFile:
         materials = []
@@ -177,7 +181,7 @@ def main():
             if data[NAME] == args.copy_from:
 
                 # UP Studio won't import materials that match an existing ID
-                data[MAT_ID] = time.time()
+                data[MAT_ID] = randint(10000, 99999)
 
                 # Required material args
                 data[NAME] = args.name
