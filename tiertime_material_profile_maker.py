@@ -169,6 +169,139 @@ def parse_args():
     return parser.parse_args()
 
 
+def unlock_up_mini_2_layers(data):
+    """
+    The UP Mini 2 is actually capable of printing at 0.1mm layer thickness. It just needs to be added to the material profile.
+    """
+    # Confirm it's not already unlocked
+    for group in data["group"]:
+        if group[PRINTER] == PRINTER_TO_ID["up_mini_2"] and group[LAYER_THICK] == 0.1:
+            return data
+
+    # Wasn't already unlocked, so let's do so. We simply need to copy from the default printer and update the printer ID
+    groups = []
+    for group in data["group"]:
+        groups.append(group)
+        if group[PRINTER] == PRINTER_TO_ID["default"] and group[LAYER_THICK] == 0.1:
+            unlocked = group
+            unlocked[PRINTER] = PRINTER_TO_ID["up_mini_2"]
+            groups.append(unlocked)
+
+    data["group"] = groups
+    return data
+
+
+def customize_material_profile(data, args):
+    # UP Studio won't import materials that match an existing ID
+    data[MAT_ID] = randint(10000, 99999)
+
+    # Required material args
+    data[NAME] = args.name
+    data[MANUFACTURER] = args.manufacturer
+
+    # Optional material args
+    data[MAT_TEMP] = args.temperature if args.temperature is not None else data[MAT_TEMP]
+    data[BED_TEMP_1] = args.bed_temp if args.bed_temp is not None else data[BED_TEMP_1]
+    data[BED_TEMP_2] = args.bed_temp if args.bed_temp is not None else data[BED_TEMP_2]
+    data[MAT_DIAMETER] = args.diameter if args.diameter is not None else data[MAT_DIAMETER]
+    data[MAT_DENSITY] = args.density if args.density is not None else data[MAT_DENSITY]
+    data[SHRINKAGE] = args.shrinkage if args.shrinkage is not None else data[SHRINKAGE]
+
+    return data
+
+
+def customize_print_profile(data, args):
+    groups = []
+    print
+    for group in data["group"]:
+        if ((args.printer is None or args.printer == ID_TO_PRINTER.get(group[PRINTER], group[PRINTER])) and
+            (args.nozzle_diameter is None or args.nozzle_diameter == group[NOZZLE_DIAMETER]) and
+            (args.layer_thickness is None or args.layer_thickness == group[LAYER_THICK]) and
+                (args.quality is None or args.quality == ID_TO_QUALITY.get(group[QUALITY], group[QUALITY]))):
+            print "Updating printer {0}, nozzle {1}, layer {2}, speed {3}".format(
+                ID_TO_PRINTER.get(group[PRINTER], group[PRINTER]
+                                  ), group[NOZZLE_DIAMETER], group[LAYER_THICK], ID_TO_QUALITY.get(group[QUALITY], group[QUALITY]))
+            # group[BASIC_SEND_RATE] = args.basic_send_rate if args.basic_send_rate is not None else group[BASIC_SEND_RATE]
+            group[PRINT_TEMP_LOW] = args.temperature if args.temperature is not None else group[PRINT_TEMP_LOW]
+            group[PRINT_TEMP_HIGH] = args.temperature + 10 if args.temperature is not None else group[PRINT_TEMP_HIGH]
+            group[BED_TEMP_3] = args.bed_temp if args.bed_temp is not None else group[BED_TEMP_3]
+            group[MAT_WITHDRAW_LENGTH] = args.withdraw_length if args.withdraw_length is not None else group[MAT_WITHDRAW_LENGTH]
+            group[PEEL_RATIO] = args.peel_ratio if args.peel_ratio is not None else group[PEEL_RATIO]
+            group[LINE_WIDTH] = [args.line_width[0], args.line_width[1], args.line_width[2]] if args.line_width is not None else group[LINE_WIDTH]
+            group[SCAN_SPEED] = [args.scan_speed[0], args.scan_speed[1], args.scan_speed[2]] if args.scan_speed is not None else group[SCAN_SPEED]
+            group[SEND_RATIO] = [args.send_ratio[0], args.send_ratio[1], args.send_ratio[2]] if args.send_ratio is not None else group[SEND_RATIO]
+            group[TEMP_BIAS] = [args.temp_bias[0], args.temp_bias[1], args.temp_bias[2]] if args.temp_bias is not None else group[TEMP_BIAS]
+            group[ASPEED] = [args.aspeed[0], args.aspeed[1], args.aspeed[2]] if args.aspeed is not None else group[ASPEED]
+            group[P16] = args.p16 if args.p16 is not None else group[P16]
+            # group[JOGGLE_SPEED] = args.joggle_speed if args.joggle_speed is not None else group[JOGGLE_SPEED]
+            group[P18] = args.p18 if args.p18 is not None else group[P18]
+            group[P19] = args.p19 if args.p19 is not None else group[P19]
+            if args.part_support_hatch_scale is not None:
+                group[PART_SUPPORT_HATCH_SCALE] = args.part_support_hatch_scale
+            else:
+                group[PART_SUPPORT_HATCH_SCALE]
+            group[P21] = args.p21 if args.p21 is not None else group[P21]
+            group[P22] = args.p22 if args.p22 is not None else group[P22]
+            group[RAFT_LAYER_THICK] = args.raft_layer_thicknessness if args.raft_layer_thicknessness is not None else group[RAFT_LAYER_THICK]
+            group[RAFT_PATH_WIDTH] = args.raft_path_width if args.raft_path_width is not None else group[RAFT_PATH_WIDTH]
+            group[P25] = args.p25 if args.p25 is not None else group[P25]
+            group[P26] = args.p26 if args.p26 is not None else group[P26]
+            group[P27] = args.p27 if args.p27 is not None else group[P27]
+            group[P28] = args.p28 if args.p28 is not None else group[P28]
+        groups.append(group)
+        data["group"] = groups
+    return data
+
+
+def print_summary(data, args):
+    print
+    print "NAME:", data[NAME]
+    print "MANUFACTURER:", data[MANUFACTURER]
+    print "PRINT TEMPERATURE:", data[MAT_TEMP]
+    print "BED TEMPERATURE:", data[BED_TEMP_1]
+    print "MATERIAL DIAMETER:", data[MAT_DIAMETER]
+    print "MATERIAL DENSITY:", data[MAT_DENSITY]
+    print "SHRINKAGE %:", data[SHRINKAGE]
+    print
+    for group in data["group"]:
+        if ((args.printer is None or args.printer == ID_TO_PRINTER.get(group[PRINTER], group[PRINTER])) and
+            (args.nozzle_diameter is None or args.nozzle_diameter == group[NOZZLE_DIAMETER]) and
+            (args.layer_thickness is None or args.layer_thickness == group[LAYER_THICK]) and
+                (args.quality is None or args.quality == ID_TO_QUALITY.get(group[QUALITY], group[QUALITY]))):
+            print "PRINTER:", ID_TO_PRINTER[group[PRINTER]]
+            print "NOZZLE DIAMETER:", group[NOZZLE_DIAMETER]
+            print "LAYER THICKNESS:", group[LAYER_THICK]
+            print "QUALITY:", ID_TO_QUALITY[group[QUALITY]]
+            print "BASIC SEND RATE:", group[BASIC_SEND_RATE]
+            print "PRINT TEMP LOW:", group[PRINT_TEMP_LOW]
+            print "PRINT TEMP HIGH:", group[PRINT_TEMP_HIGH]
+            print "BED TEMPERATURE:", group[BED_TEMP_3]
+            print "MATERIAL WITHDRAW LENGTH:", group[MAT_WITHDRAW_LENGTH]
+            print "PEEL RATIO:", group[PEEL_RATIO]
+            print
+            print "[OUTLINE, INFILL, SUPPORT]"
+            print "LINE WIDTH:", group[LINE_WIDTH]
+            print "SCAN SPEED:", group[SCAN_SPEED]
+            print "SEND RATIO:", group[SEND_RATIO]
+            print "TEMP BIAS:", group[TEMP_BIAS]
+            print "ASPEED:", group[ASPEED]
+            print
+            print "P16:", group[P16]
+            print "JOGGLE SPEED:", group[JOGGLE_SPEED]
+            print "P18:", group[P18]
+            print "P19:", group[P19]
+            print "PART SUPPORT HATCH SCALE:", group[PART_SUPPORT_HATCH_SCALE]
+            print "P21:", group[P21]
+            print "P22:", group[P22]
+            print "RAFT LAYER THICKNESS:", group[RAFT_LAYER_THICK]
+            print "RAFT PATH WIDTH:", group[RAFT_PATH_WIDTH]
+            print "P25:", group[P25]
+            print "P26:", group[P26]
+            print "P27:", group[P27]
+            print "P28:", group[P28]
+            break
+
+
 def main():
     args = parse_args()
 
@@ -179,110 +312,10 @@ def main():
             raw = line.strip() if args.unencoded_template else binascii.unhexlify(line.strip())
             data = json.JSONDecoder(object_pairs_hook=OrderedDict).decode(raw)
             if data[NAME] == args.copy_from:
-
-                # UP Studio won't import materials that match an existing ID
-                data[MAT_ID] = randint(10000, 99999)
-
-                # Required material args
-                data[NAME] = args.name
-                data[MANUFACTURER] = args.manufacturer
-
-                # Optional material args
-                data[MAT_TEMP] = args.temperature if args.temperature is not None else data[MAT_TEMP]
-                data[BED_TEMP_1] = args.bed_temp if args.bed_temp is not None else data[BED_TEMP_1]
-                data[BED_TEMP_2] = args.bed_temp if args.bed_temp is not None else data[BED_TEMP_2]
-                data[MAT_DIAMETER] = args.diameter if args.diameter is not None else data[MAT_DIAMETER]
-                data[MAT_DENSITY] = args.density if args.density is not None else data[MAT_DENSITY]
-                data[SHRINKAGE] = args.shrinkage if args.shrinkage is not None else data[SHRINKAGE]
-
-                groups = []
-                print
-                for group in data["group"]:
-                    if ((args.printer is None or args.printer == ID_TO_PRINTER.get(group[PRINTER], group[PRINTER])) and
-                        (args.nozzle_diameter is None or args.nozzle_diameter == group[NOZZLE_DIAMETER]) and
-                        (args.layer_thickness is None or args.layer_thickness == group[LAYER_THICK]) and
-                            (args.quality is None or args.quality == ID_TO_QUALITY.get(group[QUALITY], group[QUALITY]))):
-                        print "Updating printer {0}, nozzle {1}, layer {2}, speed {3}".format(
-                            ID_TO_PRINTER.get(group[PRINTER], group[PRINTER]
-                                              ), group[NOZZLE_DIAMETER], group[LAYER_THICK], ID_TO_QUALITY.get(group[QUALITY], group[QUALITY]))
-                        # group[BASIC_SEND_RATE] = args.basic_send_rate if args.basic_send_rate is not None else group[BASIC_SEND_RATE]
-                        group[PRINT_TEMP_LOW] = args.temperature if args.temperature is not None else group[PRINT_TEMP_LOW]
-                        group[PRINT_TEMP_HIGH] = args.temperature + 10 if args.temperature is not None else group[PRINT_TEMP_HIGH]
-                        group[BED_TEMP_3] = args.bed_temp if args.bed_temp is not None else group[BED_TEMP_3]
-                        group[MAT_WITHDRAW_LENGTH] = args.withdraw_length if args.withdraw_length is not None else group[MAT_WITHDRAW_LENGTH]
-                        group[PEEL_RATIO] = args.peel_ratio if args.peel_ratio is not None else group[PEEL_RATIO]
-                        group[LINE_WIDTH] = [args.line_width[0], args.line_width[1], args.line_width[2]] if args.line_width is not None else group[LINE_WIDTH]
-                        group[SCAN_SPEED] = [args.scan_speed[0], args.scan_speed[1], args.scan_speed[2]] if args.scan_speed is not None else group[SCAN_SPEED]
-                        group[SEND_RATIO] = [args.send_ratio[0], args.send_ratio[1], args.send_ratio[2]] if args.send_ratio is not None else group[SEND_RATIO]
-                        group[TEMP_BIAS] = [args.temp_bias[0], args.temp_bias[1], args.temp_bias[2]] if args.temp_bias is not None else group[TEMP_BIAS]
-                        group[ASPEED] = [args.aspeed[0], args.aspeed[1], args.aspeed[2]] if args.aspeed is not None else group[ASPEED]
-                        group[P16] = args.p16 if args.p16 is not None else group[P16]
-                        # group[JOGGLE_SPEED] = args.joggle_speed if args.joggle_speed is not None else group[JOGGLE_SPEED]
-                        group[P18] = args.p18 if args.p18 is not None else group[P18]
-                        group[P19] = args.p19 if args.p19 is not None else group[P19]
-                        if args.part_support_hatch_scale is not None:
-                            group[PART_SUPPORT_HATCH_SCALE] = args.part_support_hatch_scale
-                        else:
-                            group[PART_SUPPORT_HATCH_SCALE]
-                        group[P21] = args.p21 if args.p21 is not None else group[P21]
-                        group[P22] = args.p22 if args.p22 is not None else group[P22]
-                        group[RAFT_LAYER_THICK] = args.raft_layer_thicknessness if args.raft_layer_thicknessness is not None else group[RAFT_LAYER_THICK]
-                        group[RAFT_PATH_WIDTH] = args.raft_path_width if args.raft_path_width is not None else group[RAFT_PATH_WIDTH]
-                        group[P25] = args.p25 if args.p25 is not None else group[P25]
-                        group[P26] = args.p26 if args.p26 is not None else group[P26]
-                        group[P27] = args.p27 if args.p27 is not None else group[P27]
-                        group[P28] = args.p28 if args.p28 is not None else group[P28]
-
-                    groups.append(group)
-
-                data["group"] = groups
-
-                print
-                print "NAME:", data[NAME]
-                print "MANUFACTURER:", data[MANUFACTURER]
-                print "PRINT TEMPERATURE:", data[MAT_TEMP]
-                print "BED TEMPERATURE:", data[BED_TEMP_1]
-                print "MATERIAL DIAMETER:", data[MAT_DIAMETER]
-                print "MATERIAL DENSITY:", data[MAT_DENSITY]
-                print "SHRINKAGE %:", data[SHRINKAGE]
-                print
-                for group in data["group"]:
-                    if ((args.printer is None or args.printer == ID_TO_PRINTER.get(group[PRINTER], group[PRINTER])) and
-                        (args.nozzle_diameter is None or args.nozzle_diameter == group[NOZZLE_DIAMETER]) and
-                        (args.layer_thickness is None or args.layer_thickness == group[LAYER_THICK]) and
-                            (args.quality is None or args.quality == ID_TO_QUALITY.get(group[QUALITY], group[QUALITY]))):
-                        print "PRINTER:", ID_TO_PRINTER[group[PRINTER]]
-                        print "NOZZLE DIAMETER:", group[NOZZLE_DIAMETER]
-                        print "LAYER THICKNESS:", group[LAYER_THICK]
-                        print "QUALITY:", ID_TO_QUALITY[group[QUALITY]]
-                        print "BASIC SEND RATE:", group[BASIC_SEND_RATE]
-                        print "PRINT TEMP LOW:", group[PRINT_TEMP_LOW]
-                        print "PRINT TEMP HIGH:", group[PRINT_TEMP_HIGH]
-                        print "BED TEMPERATURE:", group[BED_TEMP_3]
-                        print "MATERIAL WITHDRAW LENGTH:", group[MAT_WITHDRAW_LENGTH]
-                        print "PEEL RATIO:", group[PEEL_RATIO]
-                        print
-                        print "[OUTLINE, INFILL, SUPPORT]"
-                        print "LINE WIDTH:", group[LINE_WIDTH]
-                        print "SCAN SPEED:", group[SCAN_SPEED]
-                        print "SEND RATIO:", group[SEND_RATIO]
-                        print "TEMP BIAS:", group[TEMP_BIAS]
-                        print "ASPEED:", group[ASPEED]
-                        print
-                        print "P16:", group[P16]
-                        print "JOGGLE SPEED:", group[JOGGLE_SPEED]
-                        print "P18:", group[P18]
-                        print "P19:", group[P19]
-                        print "PART SUPPORT HATCH SCALE:", group[PART_SUPPORT_HATCH_SCALE]
-                        print "P21:", group[P21]
-                        print "P22:", group[P22]
-                        print "RAFT LAYER THICKNESS:", group[RAFT_LAYER_THICK]
-                        print "RAFT PATH WIDTH:", group[RAFT_PATH_WIDTH]
-                        print "P25:", group[P25]
-                        print "P26:", group[P26]
-                        print "P27:", group[P27]
-                        print "P28:", group[P28]
-                        break
+                data = unlock_up_mini_2_layers(data)
+                data = customize_material_profile(data, args)
+                data = customize_print_profile(data, args)
+                print_summary(data, args)
 
                 output = json.dumps(data)
                 material = output if args.non_encoded_output else binascii.hexlify(output)
