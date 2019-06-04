@@ -11,7 +11,7 @@ I make no claim or guarantee that any of this will work at all. I've included ve
 
 ```
 usage: tiertime_material_profile_maker.py [-h] [--template-file TEMPLATE_FILE]
-                                          [--unencoded-template] --copy-from
+                                          [--non-encoded-template] --copy-from
                                           {ABS,ABS+,PLA,TPU,CUSTOM} --name
                                           NAME --manufacturer MANUFACTURER
                                           [--temperature TEMPERATURE]
@@ -30,7 +30,10 @@ usage: tiertime_material_profile_maker.py [-h] [--template-file TEMPLATE_FILE]
                                           [--send-ratio SEND_RATIO SEND_RATIO SEND_RATIO]
                                           [--temp-bias TEMP_BIAS TEMP_BIAS TEMP_BIAS]
                                           [--aspeed ASPEED ASPEED ASPEED]
-                                          [--p16 P16] [--p18 P18] [--p19 P19]
+                                          [--basic-send-rate BASIC_SEND_RATE]
+                                          [--p16 P16]
+                                          [--joggle-speed JOGGLE_SPEED]
+                                          [--p18 P18] [--p19 P19]
                                           [--part-support-hatch-scale PART_SUPPORT_HATCH_SCALE]
                                           [--p21 P21] [--p22 P22]
                                           [--raft-layer-thickness RAFT_LAYER_THICKNESSNESS]
@@ -50,7 +53,8 @@ optional arguments:
                         "/Applications/UP
                         Studio.app/Contents/Resources/DB/vendor.fmd" if not
                         provided.
-  --unencoded-template  Template file will be assumed to not be hex encoded
+  --non-encoded-template
+                        Template file will be assumed to not be hex encoded
                         and will therefor not be decoded
   --copy-from {ABS,ABS+,PLA,TPU,CUSTOM}
                         Built-in Tiertime material to base new material on:
@@ -94,7 +98,13 @@ optional arguments:
                         Temperature bias in int [outline, infill, support]
   --aspeed ASPEED ASPEED ASPEED
                         Acceleration (?) in int [outlint, infill, support]
+  --basic-send-rate BASIC_SEND_RATE
+                        Basic send rate. Seems to get recalculated based on
+                        material density on import to UP Studio, EXPERIMENTAL
   --p16 P16             Parameter p16 EXPERIMENTAL
+  --joggle-speed JOGGLE_SPEED
+                        Joggle speed (travel speed???). Seems to get reset on
+                        import to UP Studio. EXPERIMENTAL
   --p18 P18             Parameter p18 EXPERIMENTAL
   --p19 P19             Parameter p19 EXPERIMENTAL
   --part-support-hatch-scale PART_SUPPORT_HATCH_SCALE
@@ -118,15 +128,13 @@ optional arguments:
 Example of creating a custom material profile, with configurations for several different printers, layer thicknesses, and speeds. Note how we name the material `CUSTOM` until the final step so that we can do `--copy-from CUSTOM` (`--copy-from` being limited to ABS,ABS+,PLA,TPU and CUSTOM). Also note the use of `--non-encoded-output` and `--unencoded-template` to allow manual edits to be made to the .fmd file:
 
 ```
-python tiertime_material_profile_maker.py --copy-from PLA --name CUSTOM --manufacturer CUSTOM --temperature 205 --bed-temp 0 --diameter 1.75 --density 1.24 custom.fmd
-python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer default --nozzle-diameter 0.4 --layer-thickness 0.1 --line-width 0.4 0.7 0.47 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
+python tiertime_material_profile_maker.py --copy-from PLA --name CUSTOM --manufacturer CUSTOM --temperature 205 --bed-temp 0 custom.fmd
 python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer default --nozzle-diameter 0.4 --layer-thickness 0.15 --line-width 0.42 0.72 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
 python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer default --nozzle-diameter 0.4 --layer-thickness 0.2 --line-width 0.4 0.75 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
 python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --line-width 0.42 0.72 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
-python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.2 --line-width 0.4 0.75 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 custom.fmd
-python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --quality normal --non-encoded-output UNENCODED_custom.fmd
+python tiertime_material_profile_maker.py --template-file custom.fmd --copy-from CUSTOM --name CUSTOM --manufacturer CUSTOM --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.2 --line-width 0.4 0.75 0.55 --scan-speed 21 42 42 --aspeed 1000 1000 1000 --non-encoded-output UNENCODED_custom.fmd
 
 # Open UNENCODED_custom.fmd in a text editor, validate, make some manual edits, etc.
 
-python tiertime_material_profile_maker.py --template-file UNENCODED_custom.fmd --unencoded-template --copy-from CUSTOM --name 205PLA+ --manufacturer eSun --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --speed normal esun_plaplus_205.fmd
+python tiertime_material_profile_maker.py --template-file UNENCODED_custom.fmd --non-encoded-template --copy-from CUSTOM --name 205PLA+ --manufacturer eSun --printer up_mini_2 --nozzle-diameter 0.4 --layer-thickness 0.15 --speed normal esun_plaplus_205.fmd
 ```

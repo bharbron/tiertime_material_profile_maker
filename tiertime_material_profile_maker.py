@@ -58,7 +58,7 @@ def parse_args():
                         help="Optional alternative .FMD file to use as the source template for customization. \
                         Defaults to \"/Applications/UP Studio.app/Contents/Resources/DB/vendor.fmd\" if not provided.")
 
-    parser.add_argument("--unencoded-template", action="store_true", dest="unencoded_template", default=False,
+    parser.add_argument("--non-encoded-template", action="store_true", dest="non_encoded_template", default=False,
                         help="Template file will be assumed to not be hex encoded and will therefor not be decoded")
 
     parser.add_argument("--copy-from", action="store", dest="copy_from", type=str, required=True, choices=["ABS", "ABS+", "PLA", "TPU", "CUSTOM"],
@@ -99,9 +99,6 @@ def parse_args():
     parser.add_argument("--quality", action="store", dest="quality", type=str, choices=sorted(QUALITY_TO_ID.keys()),
                         help="Print speed/quality these customizations will be applied to")
 
-    # parser.add_argument("--basic-send-rate", action="store", dest="basic_send_rate", type=float,
-    #                    help="Basic send rate")
-
     parser.add_argument("--withdraw-length", action="store", dest="withdraw_length", type=int,
                         help="Material withdraw/retraction distance")
 
@@ -123,11 +120,14 @@ def parse_args():
     parser.add_argument("--aspeed", action="store", dest="aspeed", type=int, nargs=3,
                         help="Acceleration (?) in int [outlint, infill, support]")
 
+    parser.add_argument("--basic-send-rate", action="store", dest="basic_send_rate", type=float,
+                        help="Basic send rate. Seems to get recalculated based on material density on import to UP Studio, EXPERIMENTAL")
+
     parser.add_argument("--p16", action="store", dest="p16", type=float,
                         help="Parameter p16 EXPERIMENTAL")
 
-    # parser.add_argument("--joggle-speed", action="store", dest="joggle_speed", type=int,
-    #                     help="Joggle speed (travel speed???)")
+    parser.add_argument("--joggle-speed", action="store", dest="joggle_speed", type=int,
+                        help="Joggle speed (travel speed???). Seems to get reset on import to UP Studio. EXPERIMENTAL")
 
     parser.add_argument("--p18", action="store", dest="p18", type=float,
                         help="Parameter p18 EXPERIMENTAL")
@@ -184,7 +184,7 @@ def unlock_up_mini_2_layers(data):
     groups = []
     for group in data["group"]:
         groups.append(group)
-        if group[PRINTER] == PRINTER_TO_ID["default"] and group[LAYER_THICK] == 0.1:
+        if group[PRINTER] == PRINTER_TO_ID["default"] and group[LAYER_THICK] == 0.1 or group[PRINTER] == "10111" and group[NOZZLE_DIAMETER] == 0.2:
             unlocked = group
             unlocked[PRINTER] = PRINTER_TO_ID["up_mini_2"]
             groups.append(unlocked)
@@ -223,7 +223,6 @@ def customize_print_profile(data, args):
             print "Updating printer {0}, nozzle {1}, layer {2}, speed {3}".format(
                 ID_TO_PRINTER.get(group[PRINTER], group[PRINTER]
                                   ), group[NOZZLE_DIAMETER], group[LAYER_THICK], ID_TO_QUALITY.get(group[QUALITY], group[QUALITY]))
-            # group[BASIC_SEND_RATE] = args.basic_send_rate if args.basic_send_rate is not None else group[BASIC_SEND_RATE]
             group[PRINT_TEMP_LOW] = args.temperature if args.temperature is not None else group[PRINT_TEMP_LOW]
             group[PRINT_TEMP_HIGH] = args.temperature + 10 if args.temperature is not None else group[PRINT_TEMP_HIGH]
             group[BED_TEMP_3] = args.bed_temp if args.bed_temp is not None else group[BED_TEMP_3]
@@ -234,8 +233,9 @@ def customize_print_profile(data, args):
             group[SEND_RATIO] = [args.send_ratio[0], args.send_ratio[1], args.send_ratio[2]] if args.send_ratio is not None else group[SEND_RATIO]
             group[TEMP_BIAS] = [args.temp_bias[0], args.temp_bias[1], args.temp_bias[2]] if args.temp_bias is not None else group[TEMP_BIAS]
             group[ASPEED] = [args.aspeed[0], args.aspeed[1], args.aspeed[2]] if args.aspeed is not None else group[ASPEED]
+            group[BASIC_SEND_RATE] = args.basic_send_rate if args.basic_send_rate is not None else group[BASIC_SEND_RATE]
             group[P16] = args.p16 if args.p16 is not None else group[P16]
-            # group[JOGGLE_SPEED] = args.joggle_speed if args.joggle_speed is not None else group[JOGGLE_SPEED]
+            group[JOGGLE_SPEED] = args.joggle_speed if args.joggle_speed is not None else group[JOGGLE_SPEED]
             group[P18] = args.p18 if args.p18 is not None else group[P18]
             group[P19] = args.p19 if args.p19 is not None else group[P19]
             if args.part_support_hatch_scale is not None:
@@ -274,7 +274,6 @@ def print_summary(data, args):
             print "NOZZLE DIAMETER:", group[NOZZLE_DIAMETER]
             print "LAYER THICKNESS:", group[LAYER_THICK]
             print "QUALITY:", ID_TO_QUALITY[group[QUALITY]]
-            print "BASIC SEND RATE:", group[BASIC_SEND_RATE]
             print "PRINT TEMP LOW:", group[PRINT_TEMP_LOW]
             print "PRINT TEMP HIGH:", group[PRINT_TEMP_HIGH]
             print "BED TEMPERATURE:", group[BED_TEMP_3]
@@ -288,6 +287,8 @@ def print_summary(data, args):
             print "TEMP BIAS:", group[TEMP_BIAS]
             print "ASPEED:", group[ASPEED]
             print
+            print "----- EXPERIMENTAL -----"
+            print "BASIC SEND RATE:", group[BASIC_SEND_RATE]
             print "P16:", group[P16]
             print "JOGGLE SPEED:", group[JOGGLE_SPEED]
             print "P18:", group[P18]
@@ -311,7 +312,7 @@ def main():
         materials = []
         version = fmdFile.readline()
         for line in fmdFile:
-            raw = line.strip() if args.unencoded_template else binascii.unhexlify(line.strip())
+            raw = line.strip() if args.non_encoded_template else binascii.unhexlify(line.strip())
             data = json.JSONDecoder(object_pairs_hook=OrderedDict).decode(raw)
             if data[NAME] == args.copy_from:
                 data = unlock_up_mini_2_layers(data)
