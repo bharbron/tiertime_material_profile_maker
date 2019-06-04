@@ -63,7 +63,7 @@ optional arguments:
   --manufacturer MANUFACTURER
                         Manufacturer name, e.g. "eSun"
   --temperature TEMPERATURE
-                        Base extrusion temperature of meterial
+                        Base extrusion temperature of material
   --bed-temp BED_TEMP   Print bed temperature
   --diameter DIAMETER   Material diameter. In my experience, I recommend not
                         changing this. By default, Tiertime sets this at 1.7
@@ -125,7 +125,7 @@ optional arguments:
 
 ## Example
 
-Example of creating a custom material profile, with configurations for several different printers, layer thicknesses, and speeds. Note how we name the material `CUSTOM` until the final step so that we can do `--copy-from CUSTOM` (`--copy-from` being limited to ABS,ABS+,PLA,TPU and CUSTOM). Also note the use of `--non-encoded-output` and `--unencoded-template` to allow manual edits to be made to the .fmd file:
+Example of creating a custom material profile, with configurations for several different printers, layer thicknesses, and speeds. Note how we name the material `CUSTOM` until the final step so that we can do `--copy-from CUSTOM` (`--copy-from` being limited to ABS,ABS+,PLA,TPU and CUSTOM). Also note the use of `--non-encoded-output` and `--non-encoded-template` to allow manual edits to be made to the .fmd file:
 
 ```
 python tiertime_material_profile_maker.py --copy-from PLA --name CUSTOM --manufacturer CUSTOM --temperature 205 --bed-temp 0 custom.fmd
