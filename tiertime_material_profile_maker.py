@@ -184,7 +184,7 @@ def unlock_up_mini_2_layers(data):
     groups = []
     for group in data["group"]:
         groups.append(group)
-        if group[PRINTER] == PRINTER_TO_ID["default"] and group[LAYER_THICK] == 0.1 or group[PRINTER] == "10111" and group[NOZZLE_DIAMETER] == 0.2:
+        if group[PRINTER] == PRINTER_TO_ID["default"] and group[LAYER_THICK] == 0.1:
             unlocked = group
             unlocked[PRINTER] = PRINTER_TO_ID["up_mini_2"]
             groups.append(unlocked)
