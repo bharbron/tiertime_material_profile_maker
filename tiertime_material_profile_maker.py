@@ -3,7 +3,10 @@ import binascii
 import json
 import sys
 
+import pdb
+
 from collections import OrderedDict
+from copy import deepcopy
 from random import randint
 
 # Useful keys in FMD materials
@@ -35,10 +38,10 @@ SCAN_SPEED = "p12"
 SEND_RATIO = "p13"
 TEMP_BIAS = "p14"
 ASPEED = "p15"          # enforces a min of 1000 on import to UP Studio
-P16 = "p16"
+P16 = "p16"             # overlap? materials have this at 0.2, which is what logs show overlap as
 JOGGLE_SPEED = "p17"    # resets on import to UP Studio
-P18 = "p18"
-P19 = "p19"
+P18 = "p18"     # overlap? materials have this at 0.2, which is what logs show overlap as
+P19 = "p19"     # retraction speed? g-code tutorial says to set to 1800 mm/min, which is 30 mm/s. p19 appears as 30 throughout tiertime's material configs
 PART_SUPPORT_HATCH_SCALE = "p20"
 P21 = "p21"
 P22 = "p22"
@@ -93,7 +96,7 @@ def parse_args():
     parser.add_argument("--nozzle-diameter", action="store", dest="nozzle_diameter", type=float, choices=[0.2, 0.4, 0.6],
                         help="Nozzle diameter that these customizations will be applied to")
 
-    parser.add_argument("--layer-thickness", action="store", dest="layer_thickness", type=float, choices=[0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4],
+    parser.add_argument("--layer-thickness", action="store", dest="layer_thickness", type=float, choices=[0.05, 0.08, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4],
                         help="Layer height that these customizations will be applied to")
 
     parser.add_argument("--quality", action="store", dest="quality", type=str, choices=sorted(QUALITY_TO_ID.keys()),
@@ -133,7 +136,7 @@ def parse_args():
                         help="Parameter p18 EXPERIMENTAL")
 
     parser.add_argument("--p19", action="store", dest="p19", type=int,
-                        help="Parameter p19 EXPERIMENTAL")
+                        help="Parameter p19 EXPERIMENTAL. Might be restraction speed in mm/s")
 
     parser.add_argument("--part-support-hatch-scale", action="store", dest="part_support_hatch_scale", type=float,
                         help="?? Part support hatch scale ?? EXPERIMENTAL")
@@ -185,9 +188,11 @@ def unlock_up_mini_2_layers(data):
     for group in data["group"]:
         groups.append(group)
         if group[PRINTER] == PRINTER_TO_ID["default"] and group[LAYER_THICK] == 0.1:
-            unlocked = group
-            unlocked[PRINTER] = PRINTER_TO_ID["up_mini_2"]
-            groups.append(unlocked)
+            for thickness in [0.1]:
+                unlocked = deepcopy(group)
+                unlocked[PRINTER] = PRINTER_TO_ID["up_mini_2"]
+                unlocked[LAYER_THICK] = thickness
+                groups.append(unlocked)
 
     data["group"] = groups
     return data
