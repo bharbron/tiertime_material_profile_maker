@@ -38,19 +38,19 @@ SCAN_SPEED = "p12"
 SEND_RATIO = "p13"
 TEMP_BIAS = "p14"
 ASPEED = "p15"          # enforces a min of 1000 on import to UP Studio
-P16 = "p16"             # overlap? materials have this at 0.2, which is what logs show overlap as
+OVERLAP = "p16"             # OVERLAP
 JOGGLE_SPEED = "p17"    # resets on import to UP Studio
-P18 = "p18"     # overlap? materials have this at 0.2, which is what logs show overlap as
+P18 = "p18"     # ??? materials have this at 0.2, which is what logs show overlap as. 0.2 nozzle = 0.1, 0.4 or 0.6 nozzle = 0.2
 P19 = "p19"     # retraction speed? g-code tutorial says to set to 1800 mm/min, which is 30 mm/s. p19 appears as 30 throughout tiertime's material configs
 PART_SUPPORT_HATCH_SCALE = "p20"
-P21 = "p21"
-P22 = "p22"
-RAFT_LAYER_THICK = "p23"
-RAFT_PATH_WIDTH = "p24"
-P25 = "p25"
-P26 = "p26"
-P27 = "p27"
-P28 = "p28"
+P21 = "p21"     # 1 for most tiertime materials. "OffsetTime" or "HatchMode"? NEITHER
+P22 = "p22"     # always 1.5 in tiertime materials
+RAFT_LAYER_THICK = "p23"    # 0.2 nozzle = 0.15, 0.4 nozzle = 0.25, 0.6 nozzle = 0.35
+RAFT_PATH_WIDTH = "p24"     # 0.2 nozzle = 0.39, 0.4 nozzle = 0.63, 0.6 nozzle = 0.87
+P25 = "p25"                 # 0.2 nozzle = 0.4095, 0.4 nozzle = 1.1025, 0.6 nozzle = 2.1315
+P26 = "p26"     # 1 for tiertime materials. "OffsetTime" or "HatchMode"
+P27 = "p27"     # 0 for tiertime materials. "ToleranceCompensation"?
+P28 = "p28"     # 15 for tiertime materials.
 
 
 def parse_args():
@@ -174,6 +174,28 @@ def parse_args():
     return parser.parse_args()
 
 
+def unlock_up_mini_2_nozzle(data):
+    """
+    The UP Mini 2 is capable of using a 0.2 mm nozzle from an UP Box+. It just needs to be added to the material profile.
+    """
+    # Confirm it's not already unlocked
+    for group in data["group"]:
+        if group[PRINTER] == PRINTER_TO_ID["up_mini_2"] and group[NOZZLE_DIAMETER] == 0.2:
+            return data
+
+    # Wasn't already unlocked, so let's do so. We simply need to copy from another printer and update the printer ID
+    groups = []
+    for group in data["group"]:
+        groups.append(group)
+        if group[PRINTER] == PRINTER_TO_ID["10111"] and group[NOZZLE_DIAMETER] == 0.2:
+            unlocked = deepcopy(group)
+            unlocked[PRINTER] = PRINTER_TO_ID["up_mini_2"]
+            groups.append(unlocked)
+
+    data["group"] = groups
+    return data
+
+
 def unlock_up_mini_2_layers(data):
     """
     The UP Mini 2 is actually capable of printing at 0.1mm layer thickness. It just needs to be added to the material profile.
@@ -239,7 +261,7 @@ def customize_print_profile(data, args):
             group[TEMP_BIAS] = [args.temp_bias[0], args.temp_bias[1], args.temp_bias[2]] if args.temp_bias is not None else group[TEMP_BIAS]
             group[ASPEED] = [args.aspeed[0], args.aspeed[1], args.aspeed[2]] if args.aspeed is not None else group[ASPEED]
             group[BASIC_SEND_RATE] = args.basic_send_rate if args.basic_send_rate is not None else group[BASIC_SEND_RATE]
-            group[P16] = args.p16 if args.p16 is not None else group[P16]
+            group[OVERLAP] = args.p16 if args.p16 is not None else group[OVERLAP]
             group[JOGGLE_SPEED] = args.joggle_speed if args.joggle_speed is not None else group[JOGGLE_SPEED]
             group[P18] = args.p18 if args.p18 is not None else group[P18]
             group[P19] = args.p19 if args.p19 is not None else group[P19]
@@ -294,7 +316,7 @@ def print_summary(data, args):
             print
             print "----- EXPERIMENTAL -----"
             print "BASIC SEND RATE:", group[BASIC_SEND_RATE]
-            print "P16:", group[P16]
+            print "OVERLAP:", group[OVERLAP]
             print "JOGGLE SPEED:", group[JOGGLE_SPEED]
             print "P18:", group[P18]
             print "P19:", group[P19]
@@ -321,6 +343,7 @@ def main():
             data = json.JSONDecoder(object_pairs_hook=OrderedDict).decode(raw)
             if data[NAME] == args.copy_from:
                 data = unlock_up_mini_2_layers(data)
+                data = unlock_up_mini_2_nozzle(data)
                 data = customize_material_profile(data, args)
                 data = customize_print_profile(data, args)
                 print_summary(data, args)

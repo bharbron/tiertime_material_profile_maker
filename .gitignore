@@ -105,5 +105,7 @@ venv.bak/
 
 # Ignore any FMD files that the script generates
 *.fmd
+*.swp
+*.bak
 
 .DS_Store
