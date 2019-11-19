@@ -3,8 +3,6 @@ import binascii
 import json
 import sys
 
-import pdb
-
 from collections import OrderedDict
 from copy import deepcopy
 from random import randint
